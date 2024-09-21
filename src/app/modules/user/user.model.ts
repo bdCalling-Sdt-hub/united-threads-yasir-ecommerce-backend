@@ -10,6 +10,8 @@ const validationSchema = new Schema<TValidation>({
 
 const UserSchema = new Schema<TUser>(
   {
+    firstName: { type: String, required: true },
+    lastName: { type: String, default: null },
     email: { type: String, required: true },
     contact: { type: String, required: true },
     profilePicture: { type: String, default: null },

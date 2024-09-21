@@ -28,9 +28,9 @@ const getSingleUserFromDb = async (slug: string) => {
   return result;
 };
 
-const updateUser = async (slug: string, payload: Partial<TUser>) => {
+const updateUser = async (userId: string, payload: Partial<TUser>) => {
   const result = await UserModel.findOneAndUpdate(
-    { slug },
+    { _id: userId },
     { ...payload },
     { new: true, runValidators: true },
   );
@@ -74,7 +74,6 @@ const getUsersCount = async (query: Record<string, unknown>) => {
 
   // Use the provided year or default to the current year
   const targetYear = Number(query?.year) || new Date().getFullYear();
-  console.log(targetYear, "year");
 
   const userCounts = await UserModel.aggregate([
     {
@@ -145,12 +144,6 @@ const getUserProfileFromDb = async (user: TTokenUser) => {
 };
 
 const updateUserIntoDb = async (user: TTokenUser, payload: Partial<TUser>) => {
-  const userUpdatedData: Partial<TUser> = {};
-  const { email, profilePicture, contact } = payload;
-  if (email) userUpdatedData.email = email;
-  if (profilePicture) userUpdatedData.profilePicture = profilePicture;
-  if (contact) userUpdatedData.contact = contact;
-
   const userData = await UserModel.findOne({ email: user.email });
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
@@ -165,11 +158,33 @@ const updateUserIntoDb = async (user: TTokenUser, payload: Partial<TUser>) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
   try {
-    const result = await UserModel.findOneAndUpdate({ email: user.email }, userUpdatedData);
+    const result = await UserModel.findOneAndUpdate({ email: user.email }, payload, {
+      new: true,
+      runValidators: true,
+    });
     return result;
   } catch (error: any) {
     throw new AppError(httpStatus.BAD_REQUEST, error.message);
   }
+};
+
+const deleteUserFromDb = async (userId: string) => {
+  const userData = await UserModel.findOne({ _id: userId });
+  if (!userData) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+  if (!userData.isActive) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
+  }
+  if (userData.isDelete) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
+  }
+  if (!userData.validation?.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
+  }
+
+  await UserModel.findByIdAndUpdate({ _id: userId }, { isDelete: true });
+  return null;
 };
 
 export const UserServices = {
@@ -180,4 +195,5 @@ export const UserServices = {
   getUsersCount,
   getUserProfileFromDb,
   updateUserIntoDb,
+  deleteUserFromDb,
 };

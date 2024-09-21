@@ -26,7 +26,6 @@ const UserSchema = new Schema<TUser>(
 
 UserSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { isDelete: false } });
 UserSchema.index({ contact: 1 }, { unique: true, partialFilterExpression: { isDelete: false } });
-UserSchema.index({ name: 1 }, { unique: true, partialFilterExpression: { isDelete: false } });
 
 const UserModel = model<TUser>("User", UserSchema);
 export default UserModel;

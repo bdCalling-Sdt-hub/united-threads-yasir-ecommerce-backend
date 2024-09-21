@@ -12,6 +12,7 @@ import { sendMail } from "../../utils/sendMail";
 import UserModel from "../user/user.model";
 import { createToken, verifyToken } from "./auth.utils";
 import { TUser, TUserRole } from "../user/user.interface";
+import { USER_ROLE } from "../user/user.constant";
 
 const signUpIntoDb = async (payload: TUser) => {
   const salt = Number(config.bcrypt_salt_rounds);
@@ -21,6 +22,7 @@ const signUpIntoDb = async (payload: TUser) => {
     ...payload,
     validation: { isVerified: false, otp: 0, expiry: null },
     password: hashedPassword,
+    role: USER_ROLE.CUSTOMER,
   });
 
   if (!userData) {
@@ -29,16 +31,10 @@ const signUpIntoDb = async (payload: TUser) => {
 
   const jwtPayload = { email: userData.email, role: userData.role, _id: userData._id.toString() };
 
-  const accessToken = createToken(
+  const token = createToken(
     jwtPayload,
-    config.jwt_access_secret as Secret,
-    config.access_token_expire_in as string,
-  );
-
-  const refreshToken = createToken(
-    jwtPayload,
-    config.jwt_refresh_secret as Secret,
-    config.refresh_token_expire_in as string,
+    config.jwt_reset_secret as Secret,
+    config.jwt_reset_token_expire_in as string,
   );
 
   //  SEND EMAIL FOR VERIFICATION
@@ -56,20 +52,14 @@ const signUpIntoDb = async (payload: TUser) => {
   const html = forgetOtpEmail
     .replace(/{{name}}/g, userData.firstName + " " + userData.lastName)
     .replace(/{{otp}}/g, otp.toString());
-  sendMail({ to: userData.email, html, subject: "Forget Password Otp From United Threads" });
+  await sendMail({
+    to: userData.email,
+    html,
+    subject: "Forget Password Otp From United Threads",
+  });
 
   return {
-    accessToken,
-    refreshToken,
-    user: {
-      _id: userData._id,
-      email: userData.email,
-      role: userData.role,
-      profilePicture: userData.profilePicture,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      validation: userData.validation,
-    },
+    token,
   };
 };
 

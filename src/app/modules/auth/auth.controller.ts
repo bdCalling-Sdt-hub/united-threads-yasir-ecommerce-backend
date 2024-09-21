@@ -5,24 +5,15 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 
-//const createPatient = catchAsync(async (req: Request, res: Response) => {
-//  const result = await AuthServices.createPatientIntoDb(req.body);
-
-//  sendResponse(res, {
-//    statusCode: httpStatus.OK,
-//    success: true,
-//    message: "Sign Up successfully!, please verify your email",
-//    data: result,
-//  });
-//});
-
 const signUp = catchAsync(async (req, res) => {
-  const result = await AuthServices.signUpIntoDb(req.body);
+  const { token } = await AuthServices.signUpIntoDb(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Sign Up successfully!, please verify your email",
-    data: result,
+    data: {
+      token,
+    },
   });
 });
 

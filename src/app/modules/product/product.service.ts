@@ -31,11 +31,12 @@ const createProductIntoDb = async (user: TTokenUser, payload: TProduct) => {
 // Get All Products from Database
 const getAllProductsFromDb = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(ProductModel.find({ isDeleted: false }), query)
-    .search(["name", "description"]) // You can customize searchable fields
+    .search(["name", "description", "shortDescription", "size"])
     .filter();
 
   const products = await productQuery.modelQuery;
-  return products;
+  const meta = await productQuery.countTotal();
+  return { products, meta };
 };
 
 // Get Product By ID

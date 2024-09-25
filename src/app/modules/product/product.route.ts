@@ -76,4 +76,4 @@ router.patch(
 
 router.delete("/delete-product/:id", auth("ADMIN"), ProductController.deleteProduct);
 
-export const productRoute = router;
+export const ProductRoute = router;

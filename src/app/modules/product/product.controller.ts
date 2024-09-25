@@ -16,12 +16,13 @@ const createProduct = catchAsync(async (req, res) => {
 });
 
 const getAllProduct = catchAsync(async (req, res) => {
-  const result = await ProductServices.getAllProductsFromDb(req.query);
+  const { products, meta } = await ProductServices.getAllProductsFromDb(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Product fetched successfully",
-    data: result,
+    meta,
+    data: products,
   });
 });
 

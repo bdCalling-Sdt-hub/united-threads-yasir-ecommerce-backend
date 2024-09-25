@@ -2,9 +2,11 @@ import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { CategoryServices } from "./category.service";
+import { CustomRequest } from "../../types/common";
 
 const createCategory = catchAsync(async (req, res) => {
-  const result = await CategoryServices.createCategoryIntoDb(req.body);
+  const user = (req as CustomRequest).user;
+  const result = await CategoryServices.createCategoryIntoDb(user, req.body);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -14,7 +16,7 @@ const createCategory = catchAsync(async (req, res) => {
 });
 
 const getAllCategory = catchAsync(async (req, res) => {
-  const result = await CategoryServices.getAllCategoryFromDb();
+  const result = await CategoryServices.getAllCategoryFromDb(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

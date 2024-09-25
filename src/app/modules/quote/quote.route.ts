@@ -111,4 +111,4 @@ router.patch(
 
 router.delete("/delete-quote/:id", auth("ADMIN"), QuoteController.deleteQuote);
 
-export const QuoteRoute = router;
+export const QuoteRoutes = router;

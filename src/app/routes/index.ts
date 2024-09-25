@@ -4,7 +4,8 @@ import { UserRoutes } from "../modules/user/user.route";
 import { CategoryRoutes } from "../modules/category/category.route";
 import { ProductRoute } from "../modules/product/product.route";
 import { SettingsRoutes } from "../modules/settings/settings.route";
-import { QuoteRoute } from "../modules/quote/quote.route";
+import { QuoteRoutes } from "../modules/quote/quote.route";
+import { ReviewRoutes } from "../modules/review/review.route";
 
 const router = Router();
 
@@ -27,7 +28,11 @@ const moduleRoutes = [
   },
   {
     path: "/quote",
-    route: QuoteRoute,
+    route: QuoteRoutes,
+  },
+  {
+    path: "/review",
+    route: ReviewRoutes,
   },
   {
     path: "/settings",

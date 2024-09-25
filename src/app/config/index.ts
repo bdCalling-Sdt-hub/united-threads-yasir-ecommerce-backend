@@ -30,4 +30,8 @@ export default {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  payment: {
+    secretKey: process.env.PAYMENT_GATEWAY_SECRET_KEY,
+    webHookKey: process.env.WEB_HOOK_SECRET_KEY,
+  },
 };

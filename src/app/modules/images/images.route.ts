@@ -20,10 +20,10 @@ router.post(
             image,
           });
         } else {
-          //req.body = ImageValidations.createImageValidationSchema.parse({ image });
+          req.body = ImageValidations.imageSchema.parse({ image });
         }
       } else {
-        //req.body = ImageValidations.createImageValidationSchema.parse(JSON.parse(req?.body?.data));
+        req.body = ImageValidations.imageSchema.parse(JSON.parse(req?.body?.data));
       }
       next();
     } catch (error) {

@@ -32,7 +32,10 @@ const createProductIntoDb = async (user: TTokenUser, payload: TProduct) => {
 const getAllProductsFromDb = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(ProductModel.find({ isDeleted: false }), query)
     .search(["name", "description", "shortDescription", "size"])
-    .filter();
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
   const products = await productQuery.modelQuery;
   const meta = await productQuery.countTotal();

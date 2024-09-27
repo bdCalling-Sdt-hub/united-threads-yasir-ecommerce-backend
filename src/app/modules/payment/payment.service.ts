@@ -59,7 +59,10 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
     await session.commitTransaction();
     await session.endSession();
 
-    return paymentData;
+    return {
+      orderId: paymentData?.order,
+      sessionId,
+    };
   } catch (error: any) {
     await session.abortTransaction();
     await session.endSession();

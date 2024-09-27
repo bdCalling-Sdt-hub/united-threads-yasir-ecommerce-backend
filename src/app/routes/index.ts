@@ -8,6 +8,7 @@ import { QuoteRoutes } from "../modules/quote/quote.route";
 import { ReviewRoutes } from "../modules/review/review.route";
 import { OrderRoutes } from "../modules/order/order.route";
 import { PaymentRoutes } from "../modules/payment/payment.route";
+import { MetaRoutes } from "../modules/meta/meta.route";
 
 const router = Router();
 
@@ -47,6 +48,10 @@ const moduleRoutes = [
   {
     path: "/settings",
     route: SettingsRoutes,
+  },
+  {
+    path: "/meta",
+    route: MetaRoutes,
   },
 ];
 

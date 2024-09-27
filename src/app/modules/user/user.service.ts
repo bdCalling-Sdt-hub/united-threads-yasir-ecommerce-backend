@@ -56,76 +56,6 @@ const deleteMyProfileFromDb = async (user: TTokenUser) => {
   return null;
 };
 
-const getUsersCount = async (query: Record<string, unknown>) => {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  // Use the provided year or default to the current year
-  const targetYear = Number(query?.year) || new Date().getFullYear();
-
-  const userCounts = await UserModel.aggregate([
-    {
-      // Match users based on the query and creation date in the target year
-      $match: {
-        ...query,
-        createdAt: {
-          $gte: new Date(`${targetYear}-01-01`), // Start of the target year
-          $lt: new Date(`${targetYear + 1}-01-01`), // Start of the next year
-        },
-      },
-    },
-    {
-      // Group by month and role, then count users
-      $group: {
-        _id: {
-          month: { $month: "$createdAt" },
-          role: "$role", // Group by role as well
-        },
-        count: { $sum: 1 },
-      },
-    },
-    {
-      $project: {
-        _id: 0, // Remove _id field
-        monthIndex: "$_id.month", // Month from group _id
-        role: "$_id.role", // Role from group _id
-        count: 1,
-      },
-    },
-  ]);
-
-  // Initialize an empty object to hold the results
-  const result: any = {};
-
-  // Organize counts by month and role
-  userCounts.forEach(({ monthIndex, role, count }) => {
-    const month = months[monthIndex - 1]; // Convert month index to month name
-    if (!result[month]) {
-      result[month] = { name: month.substr(0, 3), doctor: 0, user: 0 }; // Initialize doctor and user count
-    }
-    result[month][role] = count; // Assign the count based on the role
-  });
-
-  // Ensure all months are accounted for and in the correct format
-  const allMonths = months.map((month) => {
-    return result[month] || { name: month.substr(0, 3), doctor: 0, user: 0 }; // Default to 0 if no data exists for a role
-  });
-
-  return allMonths;
-};
-
 const getUserProfileFromDb = async (user: TTokenUser) => {
   const userData = await UserModel.findOne({ email: user.email }).lean();
   if (!userData) {
@@ -192,7 +122,6 @@ export const UserServices = {
   getSingleUserFromDb,
   updateUser,
   deleteMyProfileFromDb,
-  getUsersCount,
   getUserProfileFromDb,
   updateUserIntoDb,
   deleteUserFromDb,

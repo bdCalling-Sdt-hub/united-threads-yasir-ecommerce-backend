@@ -10,7 +10,6 @@ const upload = multer({ storage });
 const router = Router();
 
 router.get("/all-users", auth("ADMIN"), UserControllers.getAllUser);
-router.get("/users-count", auth("ADMIN"), UserControllers.getUsersCount);
 router.get("/profile", auth("ADMIN", "CSR", "CUSTOMER"), UserControllers.getProfile);
 router.get("/single-user/:userId", auth("ADMIN"), UserControllers.getSingleUser);
 

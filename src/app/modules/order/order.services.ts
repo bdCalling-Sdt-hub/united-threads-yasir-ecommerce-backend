@@ -105,26 +105,35 @@ const deleteOrderIntoDb = async (id: string) => {
 const deleteUnpaidOrder = async () => {
   const session = await mongoose.startSession();
   try {
-    // FIND LAST 30 MINUTES AGO UNPAID ORDERS
+    // FIND ORDERS CREATED MORE THAN 30 MINUTES AGO AND STILL UNPAID
     const orders = await OrderModel.find({
       paymentStatus: PAYMENT_STATUS.UNPAID,
       createdAt: {
-        $gte: new Date(Date.now() - 30 * 60 * 1000),
+        $lt: new Date(Date.now() - 30 * 60 * 1000), // Orders created more than 30 minutes ago
       },
     });
+
     if (orders.length > 0) {
-      session.startTransaction();
+      session.startTransaction(); // Start transaction
+
       const orderIds = orders.map((order) => order._id);
+
+      // Delete unpaid orders
       await OrderModel.deleteMany({ _id: { $in: orderIds } }).session(session);
+
+      // Delete corresponding payments
       await PaymentModel.deleteMany({ order: { $in: orderIds } }).session(session);
-      await session.commitTransaction();
-      await session.endSession();
-      console.log("deleted unpaid orders");
+
+      await session.commitTransaction(); // Commit the transaction
+      await session.endSession(); // End the session
+      console.log("Deleted unpaid orders");
+    } else {
+      console.log("No unpaid orders older than 30 minutes found");
     }
   } catch (error) {
-    await session.abortTransaction();
-    await session.endSession();
-    console.log(error);
+    await session.abortTransaction(); // Abort transaction in case of error
+    await session.endSession(); // End the session
+    console.log("Error occurred:", error);
   }
 };
 

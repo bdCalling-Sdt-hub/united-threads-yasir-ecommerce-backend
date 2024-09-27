@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 
 export type TOrder = {
-  _id?: Schema.Types.ObjectId;
+  _id: Schema.Types.ObjectId;
   user: Schema.Types.ObjectId;
   product: Schema.Types.ObjectId;
   quantity: number;

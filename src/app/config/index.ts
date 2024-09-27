@@ -33,5 +33,8 @@ export default {
   payment: {
     secretKey: process.env.PAYMENT_GATEWAY_SECRET_KEY,
     webHookKey: process.env.WEB_HOOK_SECRET_KEY,
+    paymentSuccessUrl: process.env.PAYMENT_SUCCESS_URL,
+    paymentCancelUrl: process.env.PAYMENT_CANCEL_URL,
+    webHookUrl: process.env.WEB_HOOK_URL,
   },
 };

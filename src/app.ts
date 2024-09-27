@@ -5,6 +5,9 @@ import express, { Application, Request, Response } from "express";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFoundHandler from "./app/middlewares/notFoundHandler";
 import router from "./app/routes";
+import cron from "node-cron";
+import { OrderServices } from "./app/modules/order/order.services";
+
 const app: Application = express();
 
 // parser
@@ -17,6 +20,11 @@ app.get("/", async (req: Request, res: Response) => {
 
 // routes
 app.use("/api/v1", router);
+
+// cron job for every 5 minutes
+cron.schedule("*/1 * * * *", () => {
+  OrderServices.deleteUnpaidOrder();
+});
 
 app.use(globalErrorHandler);
 

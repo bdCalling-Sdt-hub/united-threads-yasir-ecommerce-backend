@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status";
+import mongoose from "mongoose";
+import QueryBuilder from "../../builder/QueryBuilder";
+import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
+import { PaymentModel } from "../payment/payment.model";
 import UserModel from "../user/user.model";
 import { TOrder } from "./order.interface";
-import AppError from "../../errors/AppError";
 import OrderModel from "./order.model";
-import QueryBuilder from "../../builder/QueryBuilder";
+import { PAYMENT_STATUS } from "./order.constant";
 
 // Create Order in Database
 const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
@@ -23,9 +27,34 @@ const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
 
-  // Create a new order in the database
-  const result = await OrderModel.create({ ...payload, user: userData._id });
-  return result;
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    // Create a new order in the database
+    const result = await OrderModel.create([{ ...payload, user: userData._id }], {
+      session,
+    });
+
+    await PaymentModel.create(
+      [
+        {
+          order: result[0]._id,
+          amount: result[0].amount,
+        },
+      ],
+      {
+        session,
+      },
+    );
+
+    await session.commitTransaction();
+    await session.endSession();
+    return result;
+  } catch (error: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(httpStatus.BAD_REQUEST, error.message);
+  }
 };
 
 // Get All Orders from Database
@@ -70,8 +99,33 @@ const deleteOrderIntoDb = async (id: string) => {
   if (!deletedOrder) {
     throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
   }
-
   return deletedOrder;
+};
+
+const deleteUnpaidOrder = async () => {
+  const session = await mongoose.startSession();
+  try {
+    // FIND LAST 30 MINUTES AGO UNPAID ORDERS
+    const orders = await OrderModel.find({
+      paymentStatus: PAYMENT_STATUS.UNPAID,
+      createdAt: {
+        $gte: new Date(Date.now() - 30 * 60 * 1000),
+      },
+    });
+    if (orders.length > 0) {
+      session.startTransaction();
+      const orderIds = orders.map((order) => order._id);
+      await OrderModel.deleteMany({ _id: { $in: orderIds } }).session(session);
+      await PaymentModel.deleteMany({ order: { $in: orderIds } }).session(session);
+      await session.commitTransaction();
+      await session.endSession();
+      console.log("deleted unpaid orders");
+    }
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    console.log(error);
+  }
 };
 
 export const OrderServices = {
@@ -80,4 +134,5 @@ export const OrderServices = {
   getOrderByIdFromDb,
   updateOrderIntoDb,
   deleteOrderIntoDb,
+  deleteUnpaidOrder,
 };

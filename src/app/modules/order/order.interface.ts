@@ -3,7 +3,7 @@ import { Schema } from "mongoose";
 export type TOrder = {
   _id?: Schema.Types.ObjectId;
   user: Schema.Types.ObjectId;
-  products: Schema.Types.ObjectId;
+  product: Schema.Types.ObjectId;
   quantity: number;
   amount: number;
   status: TOrderStatus;

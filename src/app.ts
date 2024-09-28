@@ -22,7 +22,7 @@ app.get("/", async (req: Request, res: Response) => {
 app.use("/api/v1", router);
 
 // cron job for every 5 minutes
-cron.schedule("*/1 * * * *", () => {
+cron.schedule("*/5 * * * *", () => {
   OrderServices.deleteUnpaidOrder();
 });
 

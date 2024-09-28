@@ -43,7 +43,7 @@ router.patch(
   UserControllers.updateProfile,
 );
 
-router.patch("/update-user/:id", auth("ADMIN"), UserControllers.updateUser);
+router.patch("/update-user/:id", auth("ADMIN", "CSR"), UserControllers.updateUser);
 router.delete("/delete-user/:id", auth("ADMIN"), UserControllers.deleteUser);
 
 export const UserRoutes = router;

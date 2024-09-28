@@ -54,7 +54,7 @@ const getMonthlyRevenue = async (query: Record<string, unknown>) => {
     const found = monthlyRevenue.find((item) => item.monthIndex === index + 1);
     return {
       name: month.substr(0, 3), // Shortened month name
-      totalRevenue: found ? found.totalRevenue / 100 : 0, // Use found revenue or 0 if not found
+      totalRevenue: found ? found.totalRevenue / 100 : 0,
     };
   });
 

@@ -25,6 +25,17 @@ const paymentLink = async (order: TOrder) => {
     metadata: {
       order: JSON.stringify(order),
     },
+    invoice_creation: {
+      enabled: true,
+    },
+    payment_intent_data: {
+      metadata: {
+        order: JSON.stringify(order),
+      },
+    },
+    payment_method_types: ["card"],
+    // expire in 30 minutes
+    //expires_at: new Date(Date.now() + 30 * 60 * 1000),
   });
 
   return paymentGatewayData;

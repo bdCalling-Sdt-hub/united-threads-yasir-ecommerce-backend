@@ -143,8 +143,8 @@ const initializeSocketIO = (server: HttpServer) => {
           const senderMessage = "message::" + user._id;
           const receiverMessage = "message::" + receiverId;
 
-          io.emit(senderMessage, { data: getPreMessage } || []);
-          io.emit(receiverMessage, { data: getPreMessage } || []);
+          io.emit(senderMessage, { data: getPreMessage || [] });
+          io.emit(receiverMessage, { data: getPreMessage || [] });
 
           //socket.emit("message", { data: getPreMessage } || []);
 

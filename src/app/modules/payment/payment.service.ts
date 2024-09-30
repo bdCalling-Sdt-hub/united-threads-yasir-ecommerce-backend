@@ -7,6 +7,10 @@ import OrderModel from "../order/order.model";
 import { StripeServices } from "../stripe/stripe.service";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
+import { sendMail } from "../../utils/sendMail";
+import path from "path";
+import fs from "fs";
+import moment from "moment";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -20,6 +24,7 @@ const createPaymentLink = async (orderId: string) => {
   }
 
   const paymentLink = await StripeServices.paymentLink(order);
+
   return {
     paymentLink: paymentLink.url,
   };
@@ -41,9 +46,11 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   try {
     session.startTransaction();
 
-    await OrderModel.findByIdAndUpdate(orderId, {
+    const orderDetails: any = await OrderModel.findByIdAndUpdate(orderId, {
       paymentStatus: PAYMENT_STATUS.PAID,
-    }).session(session);
+    })
+      .populate("user product")
+      .session(session);
 
     const paymentData = await PaymentModel.findOneAndUpdate(
       {
@@ -55,6 +62,17 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
         status: PAYMENT_STATUS.PAID,
       },
     ).session(session);
+
+    const parentMailTemplate = path.join(process.cwd(), "/src/template/invoice.html");
+    const invoiceEmail = fs.readFileSync(parentMailTemplate, "utf-8");
+    const html = invoiceEmail
+      .replace(/{{name}}/g, orderDetails?.user?.firstName as string)
+      .replace(/{{product_name}}/g, orderDetails?.product?.name)
+      .replace(/{{date}}/g, moment(new Date()).format("DD MMMM YYYY hh:mm A"))
+      .replace(/{{amount}}/g, orderDetails?.amount)
+      .replace(/{{total}}/g, orderDetails?.amount)
+      .replace(/{{support_url}}/g, "mailto:masumraihan3667@gmail.com");
+    sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads" });
 
     await session.commitTransaction();
     await session.endSession();

@@ -33,8 +33,19 @@ const getMonthlyProductOrderQuantities = catchAsync(async (req, res) => {
   });
 });
 
+const getUserAndRevenueNumber = catchAsync(async (req, res) => {
+  const result = await MetaServices.getUserAndRevenueNumber();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User and revenue number fetched successfully",
+    data: result,
+  });
+});
+
 export const MetaController = {
   getUsersCount,
   getMonthlyRevenue,
   getMonthlyProductOrderQuantities,
+  getUserAndRevenueNumber,
 };

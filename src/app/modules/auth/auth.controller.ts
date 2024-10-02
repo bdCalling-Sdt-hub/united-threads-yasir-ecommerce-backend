@@ -70,6 +70,7 @@ const signIn = catchAsync(async (req, res) => {
     message: "Sign Up successfully!",
     data: {
       accessToken,
+      refreshToken,
       role,
       _id,
     },
@@ -79,6 +80,12 @@ const signIn = catchAsync(async (req, res) => {
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken, role, _id } = req.cookies;
   const { accessToken } = await AuthServices.refreshToken(refreshToken);
+  res.cookie("token", accessToken, {
+    secure: config.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

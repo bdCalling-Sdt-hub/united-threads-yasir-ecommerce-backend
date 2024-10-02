@@ -150,11 +150,12 @@ const getMonthlyProductOrderQuantities = async (query: Record<string, unknown>) 
   // Use the provided year or default to the current year
   const targetYear = Number(query?.year) || new Date().getFullYear();
 
+  
+
   const monthlyOrderQuantities = await OrderModel.aggregate([
     {
       // Match only orders with paymentStatus as 'PAID' and within the target year
       $match: {
-        ...query,
         paymentStatus: "PAID",
         createdAt: {
           $gte: new Date(`${targetYear}-01-01`), // Start of the year
@@ -191,8 +192,39 @@ const getMonthlyProductOrderQuantities = async (query: Record<string, unknown>) 
   return result;
 };
 
+const getUserAndRevenueNumber = async () => {
+  const result = await UserModel.aggregate([
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const revenue = await PaymentModel.aggregate([
+    {
+      $match: {
+        status: "PAID",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        count: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  return {
+    userCount: result[0]?.count || 0,
+    revenueCount: revenue[0]?.count || 0,
+  };
+};
+
 export const MetaServices = {
   getMonthlyRevenue,
   getUsersCount,
   getMonthlyProductOrderQuantities,
+  getUserAndRevenueNumber,
 };

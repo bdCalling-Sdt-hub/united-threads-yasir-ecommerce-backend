@@ -12,7 +12,13 @@ const app: Application = express();
 
 // parser
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: ["*", "http://localhost:3005"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  }),
+);
 
 app.get("/", async (req: Request, res: Response) => {
   res.send({ message: "Server is Running" });

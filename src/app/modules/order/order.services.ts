@@ -59,9 +59,12 @@ const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
 
 // Get All Orders from Database
 const getAllOrdersFromDb = async (query: Record<string, unknown>) => {
-  const orderQuery = new QueryBuilder(OrderModel.find(), query)
+  const orderQuery = new QueryBuilder(OrderModel.find().populate("user product"), query)
     .search(["status", "orderType", "paymentStatus", "city", "state"])
-    .filter();
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
   const orders = await orderQuery.modelQuery;
   const meta = await orderQuery.countTotal();

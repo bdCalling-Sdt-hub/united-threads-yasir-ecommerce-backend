@@ -88,8 +88,14 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   }
 };
 
+const getPaymentFromDb = async (orderId: string) => {
+  const paymentData = await PaymentModel.findOne({ order: orderId }).lean();
+  return paymentData;
+};
+
 export const PaymentServices = {
   createPaymentIntoDb,
   createPaymentLink,
   verifyPaymentWithWebhook,
+  getPaymentFromDb,
 };

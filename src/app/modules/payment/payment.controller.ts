@@ -42,8 +42,19 @@ const webhook = catchAsync(async (req, res) => {
   }
 });
 
+const getPayment = catchAsync(async (req, res) => {
+  const result = await PaymentServices.getPaymentFromDb(req.params.orderId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Payment fetched successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   createPaymentLink,
   webhook,
+  getPayment,
 };

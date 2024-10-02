@@ -8,8 +8,10 @@ router.get("/webhook", PaymentController.webhook);
 
 router.post("/create-payment/:orderId", auth("CUSTOMER"), PaymentController.createPaymentLink);
 
+router.get("/get-payment/:orderId", auth("ADMIN", "CUSTOMER"), PaymentController.getPayment);
+
 //router.post(
-//  "/create-payment",
+//  "/create-payment",=
 //  auth("CUSTOMER"),
 //  validateRequest(PaymentValidations.createPaymentValidation),
 //  PaymentController.createPayment,

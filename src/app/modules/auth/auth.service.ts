@@ -63,7 +63,7 @@ const signUpIntoDb = async (payload: TUser) => {
   };
 };
 
-const verifyAccount = async (token: string, payload: { email: string; otp: number }) => {
+const verifyAccount = async (token: string, payload: { otp: number }) => {
   if (!token) {
     throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your token");
   }
@@ -121,8 +121,10 @@ const verifyAccount = async (token: string, payload: { email: string; otp: numbe
   };
 };
 
-const resendOtp = async (payload: { email: string }) => {
-  const userData = await UserModel.findOne({ email: payload.email });
+const resendOtp = async (user: TTokenUser, payload: { email?: string }) => {
+  const userData = await UserModel.findOne({ email: user.email || payload.email }).select(
+    "+validation.otp",
+  );
 
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
@@ -296,14 +298,15 @@ const forgetPasswordIntoDb = async (email: string) => {
   const currentTime = new Date();
   const jwtPayload = { email: userData.email, role: userData.role, _id: userData._id.toString() };
   // generate token
-  const expiresAt = moment(currentTime).add(3, "minute");
-  const token = createToken(jwtPayload, config.jwt_reset_secret as Secret, "3m");
+  const expiresAt = moment(currentTime).add(60, "minute");
+  const token = createToken(jwtPayload, config.jwt_reset_secret as Secret, "1h");
 
   //  find user and update validation
   await UserModel.findOneAndUpdate(
     { email },
     { validation: { isVerified: false, otp, expiry: expiresAt.toString() } },
   );
+
   const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
   const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = forgetOtpEmail
@@ -316,7 +319,7 @@ const forgetPasswordIntoDb = async (email: string) => {
 };
 
 const resetPassword = async (token: string, payload: { password: string }) => {
-  const decode = jwt.verify(token, config.jwt_reset_secret as Secret) as TTokenUser;
+  const decode = jwt.verify(token, config.jwt_access_secret as Secret) as TTokenUser;
   const userData = await UserModel.findOne({ email: decode.email });
 
   if (!userData) {

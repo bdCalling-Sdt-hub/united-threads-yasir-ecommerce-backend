@@ -37,6 +37,7 @@ const auth = (...requiredRole: TUserRole[]) => {
       throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
     }
 
+
     if (!userData.isActive) {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
     }

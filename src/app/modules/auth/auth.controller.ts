@@ -1,9 +1,11 @@
 import httpStatus from "http-status";
 import config from "../../config";
-import { CustomRequest } from "../../types/common";
+import { CustomRequest, TTokenUser } from "../../types/common";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
+import AppError from "../../errors/AppError";
+import jwt from "jsonwebtoken";
 
 const signUp = catchAsync(async (req, res) => {
   const { token } = await AuthServices.signUpIntoDb(req.body);
@@ -43,16 +45,27 @@ const verifyAccount = catchAsync(async (req, res) => {
 });
 
 const resendOtp = catchAsync(async (req, res) => {
-  const { token } = await AuthServices.resendOtp(req.body);
+  const t = req.headers.token as string;
+  if (!t) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your token");
+  }
+
+  const decode = jwt.decode(t) as TTokenUser;
+  if (!decode) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Token");
+  }
+
+  const { token } = await AuthServices.resendOtp(decode, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Otp resend successfully",
     data: {
-      token,
+      token: token,
     },
   });
 });
+
 const signIn = catchAsync(async (req, res) => {
   const result = await AuthServices.signInIntoDb(req.body);
   const { refreshToken, accessToken, role, _id } = result;
@@ -67,7 +80,7 @@ const signIn = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Sign Up successfully!",
+    message: "Sign In successfully!",
     data: {
       accessToken,
       refreshToken,
@@ -110,7 +123,7 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const forgetPassword = catchAsync(async (req, res) => {
-  const email = req.body.email;
+  const email = req.body?.email;
   const result = await AuthServices.forgetPasswordIntoDb(email);
 
   sendResponse(res, {
@@ -122,11 +135,15 @@ const forgetPassword = catchAsync(async (req, res) => {
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const token = req.headers.token;
+  const token = req.headers.token as string;
+  if (!token) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your token");
+  }
   const { accessToken, refreshToken, role, _id } = await AuthServices.resetPassword(
     token as string,
     req.body,
   );
+
   res.cookie("refreshToken", refreshToken, {
     secure: config.NODE_ENV === "production",
     httpOnly: true,

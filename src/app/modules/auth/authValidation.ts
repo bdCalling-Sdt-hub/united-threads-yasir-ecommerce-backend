@@ -50,19 +50,22 @@ const forgetPasswordValidation = z.object({
 
 const optValidation = z.object({
   body: z.object({
-    email: z
-      .string({ required_error: "Email is required" })
-      .email({ message: "Invalid email address" }),
+    //email: z
+    //  .string({ required_error: "Email is required" })
+    //  .email({ message: "Invalid email address" }),
     otp: z.number({ required_error: "OTP is required" }),
   }),
 });
 
 const resendOtpValidation = z.object({
-  body: z.object({
-    email: z
-      .string({ required_error: "Email is required" })
-      .email({ message: "Invalid email address" }),
-  }),
+  body: z
+    .object({
+      email: z
+        .string({ required_error: "Email is required" })
+        .email({ message: "Invalid email address" })
+        .optional(),
+    })
+    .optional(),
 });
 
 export const AuthValidations = {

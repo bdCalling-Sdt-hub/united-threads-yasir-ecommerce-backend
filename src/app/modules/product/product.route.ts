@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Router } from "express";
 import multer, { memoryStorage } from "multer";
-import { uploadToS3 } from "../../constant/s3";
+import { uploadManyToS3 } from "../../constant/s3";
 import auth from "../../middlewares/auth";
 import { ProductController } from "./product.controller";
 import { ProductValidations } from "./product.validation";
@@ -13,22 +14,28 @@ router.get("/single-product/:id", ProductController.getProductById);
 router.post(
   "/create-product",
   auth("ADMIN"),
-  upload.single("image"),
+  upload.array("images"),
   async (req, res, next) => {
     try {
-      if (req.file) {
-        const image = await uploadToS3({
-          file: req.file,
-          fileName: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
-        });
+      if (req?.files?.length) {
+        const files: TImage[] = (req.files as any[]).map((file) => ({
+          file,
+          path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+          key: file.originalname,
+        }));
+
+        const images = await uploadManyToS3(files);
+
+        const imagesPayload = images.map(({ url }) => url);
+
         if (req.body.data) {
           req.body = ProductValidations.productSchema.parse({
             ...JSON.parse(req?.body?.data),
-            image,
+            images: imagesPayload,
           });
         } else {
           req.body = ProductValidations.productSchema.parse({
-            image,
+            images: imagesPayload,
           });
         }
       } else {
@@ -42,29 +49,39 @@ router.post(
   ProductController.createProduct,
 );
 
+type TImage = {
+  file: any;
+  path: string;
+  key?: string;
+};
+
 router.patch(
   "/update-product/:id",
   auth("ADMIN"),
-  upload.single("image"),
+  upload.array("images"),
   async (req, res, next) => {
     try {
-      if (req.file) {
-        const image = await uploadToS3({
-          file: req.file,
-          fileName: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
-        });
+      if (req?.files?.length) {
+        const files: TImage[] = (req.files as any[]).map((file) => ({
+          file,
+          path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+          key: file.originalname,
+        }));
+
+        const images = await uploadManyToS3(files);
+        const imagesPayload = images.map(({ url }) => url);
         if (req.body?.data) {
           req.body = ProductValidations.productSchema.parse({
             ...JSON.parse(req?.body?.data),
-            image,
+            image: imagesPayload,
           });
         } else {
           req.body = ProductValidations.productSchema.parse({
-            image,
+            image: imagesPayload,
           });
         }
       } else {
-        req.body = ProductValidations.productSchema.parse(JSON.parse(req?.body?.data));
+        req.body = ProductValidations.productSchema.partial().parse(JSON.parse(req?.body?.data));
       }
       next();
     } catch (error) {

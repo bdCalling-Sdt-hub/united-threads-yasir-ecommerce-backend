@@ -11,7 +11,7 @@ import OrderModel from "./order.model";
 import { PAYMENT_STATUS } from "./order.constant";
 
 // Create Order in Database
-const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
+const createOrderIntoDb = async (user: TTokenUser, payload: any) => {
   const userData = await UserModel.findById(user._id).lean();
 
   if (!userData) {
@@ -25,6 +25,43 @@ const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
   }
   if (!userData.validation?.isVerified) {
     throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    // Create a new order in the database
+    const result = await OrderModel.create([{ ...payload, user: userData._id }], {
+      session,
+    });
+
+    await PaymentModel.create(
+      [
+        {
+          order: result[0]._id,
+          amount: result[0].amount,
+        },
+      ],
+      {
+        session,
+      },
+    );
+
+    await session.commitTransaction();
+    await session.endSession();
+    return result;
+  } catch (error: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(httpStatus.BAD_REQUEST, error.message);
+  }
+};
+
+const createOrderForQuote = async (user: TTokenUser, payload: TOrder) => {
+  const userData = await UserModel.findById(user._id).lean();
+
+  if (!userData) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
   }
 
   const session = await mongoose.startSession();
@@ -147,4 +184,5 @@ export const OrderServices = {
   updateOrderIntoDb,
   deleteOrderIntoDb,
   deleteUnpaidOrder,
+  createOrderForQuote,
 };

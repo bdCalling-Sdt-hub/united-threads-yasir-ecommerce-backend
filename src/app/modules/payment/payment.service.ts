@@ -11,6 +11,7 @@ import { sendMail } from "../../utils/sendMail";
 import path from "path";
 import fs from "fs";
 import moment from "moment";
+import { TOrder } from "../order/order.interface";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -30,11 +31,33 @@ const createPaymentLink = async (orderId: string) => {
   };
 };
 
+const createPaymentForQuoteOrderIntoDb = async (orderId: string, payload: { amount: number }) => {
+  const order = await OrderModel.findById(orderId);
+
+  if (!order) {
+    throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
+  }
+
+  const paymentLink = await StripeServices.createPaymentLinkForQuoteOrder(order, payload.amount);
+
+  return {
+    paymentLink: paymentLink.url,
+  };
+};
+
 const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   const payment = await StripeServices.verifyPayment(sessionId);
+  const orderData = await OrderModel.findById(orderId);
 
+  if (!orderData) {
+    throw new AppError(httpStatus.NOT_FOUND, "Order Data Not Found");
+  }
   if (!payment) {
     throw new AppError(httpStatus.NOT_FOUND, "Payment Data Not Found");
+  }
+
+  if (payment.status !== "complete") {
+    throw new AppError(httpStatus.BAD_REQUEST, "Payment is not succeeded");
   }
 
   if (payment.id !== sessionId || orderId !== orderId) {
@@ -46,10 +69,16 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   try {
     session.startTransaction();
 
-    const orderDetails: any = await OrderModel.findByIdAndUpdate(orderId, {
+    const orderPayload: Partial<TOrder> = {
       paymentStatus: PAYMENT_STATUS.PAID,
-    })
-      .populate("user product")
+    };
+
+    if (payment.amount_total && payment?.amount_total < orderData.amount) {
+      orderPayload.duoAmount = payment?.amount_total - orderData.amount;
+    }
+
+    const orderDetails: any = await OrderModel.findByIdAndUpdate(orderId, orderPayload)
+      .populate("user product quote")
       .session(session);
 
     const paymentData = await PaymentModel.findOneAndUpdate(
@@ -98,4 +127,5 @@ export const PaymentServices = {
   createPaymentLink,
   verifyPaymentWithWebhook,
   getPaymentFromDb,
+  createPaymentForQuoteOrderIntoDb,
 };

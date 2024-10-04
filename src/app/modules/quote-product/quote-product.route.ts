@@ -11,7 +11,7 @@ const upload = multer({ storage });
 const router = Router();
 
 router.get("/products", QuoteProductController.getAllQuoteProduct);
-router.get("/single-quote/:id", QuoteProductController.getQuoteProductById);
+router.get("/single-product/:id", QuoteProductController.getQuoteProductById);
 router.post(
   "/create-product",
   auth("ADMIN"),

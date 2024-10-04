@@ -52,9 +52,21 @@ const getPayment = catchAsync(async (req, res) => {
   });
 });
 
+const createPaymentForQuoteOrder = catchAsync(async (req, res) => {
+  const order = req.params.orderId;
+  const result = await PaymentServices.createPaymentForQuoteOrderIntoDb(order, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Payment created successfully",
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPayment,
   createPaymentLink,
   webhook,
   getPayment,
+  createPaymentForQuoteOrder,
 };

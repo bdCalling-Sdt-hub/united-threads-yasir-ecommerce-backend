@@ -1,10 +1,15 @@
 import httpStatus from "http-status";
-import { TTokenUser } from "../../types/common";
-import UserModel from "../user/user.model";
-import AppError from "../../errors/AppError";
-import QuoteModel from "./quote.model";
+import mongoose, { Schema } from "mongoose";
 import QueryBuilder from "../../builder/QueryBuilder";
+import AppError from "../../errors/AppError";
+import { TTokenUser } from "../../types/common";
+import { ORDER_STATUS } from "../order/order.constant";
+import { TOrder } from "../order/order.interface";
+import OrderModel from "../order/order.model";
+import { PaymentModel } from "../payment/payment.model";
+import UserModel from "../user/user.model";
 import { TQuote } from "./quote.interface";
+import QuoteModel from "./quote.model";
 
 // Create Quote in Database
 const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
@@ -21,21 +26,15 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
 // Get All Quote from Database
 const getAllQuotesFromDb = async (query: Record<string, unknown>) => {
-  const quoteQuery = new QueryBuilder(QuoteModel.find({ isDeleted: false }), query)
-    .search([
-      "name",
-      "description",
-      "materialPreferences",
-      "size",
-      "price",
-      "pantoneColor",
-      "hexColor",
-      "colorDuration",
-    ])
-    .filter();
+  const quoteQuery = new QueryBuilder(QuoteModel.find({ isDeleted: false }).populate("user"), query)
+    .search(["name", "description", "materialPreferences"])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-  const quotes = await quoteQuery.modelQuery;
   const meta = await quoteQuery.countTotal();
+  const quotes = await quoteQuery.modelQuery;
   return {
     quotes,
     meta,
@@ -44,7 +43,7 @@ const getAllQuotesFromDb = async (query: Record<string, unknown>) => {
 
 // Get Product By ID
 const getQuoteByIdFromDb = async (id: string) => {
-  const quote = await QuoteModel.findById(id).populate("category").lean();
+  const quote = await QuoteModel.findById(id).populate("category user").lean();
   if (!quote || quote.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Quote Not Found");
   }
@@ -81,10 +80,98 @@ const deleteQuoteIntoDb = async (id: string) => {
   return deletedQuote;
 };
 
+const getMyQuotesFromDb = async (user: TTokenUser, query: Record<string, unknown>) => {
+  const quotesQuery = new QueryBuilder(QuoteModel.find({ user: user._id, isDeleted: false }), query)
+    .search(["name", "description", "materialPreferences"])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const quotes = await quotesQuery.modelQuery;
+  const meta = await quotesQuery.countTotal();
+  return {
+    quotes,
+    meta,
+  };
+};
+
+const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
+  const quoteData = await QuoteModel.findOne({
+    _id: quoteId,
+    user: user._id,
+  }).lean();
+
+  if (!quoteData) {
+    throw new AppError(httpStatus.NOT_FOUND, "Quote Not Found");
+  }
+
+  if (quoteData.isAccepted) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Accepted");
+  }
+
+  if (quoteData.isDeleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Deleted");
+  }
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const updatedQuote = await QuoteModel.findByIdAndUpdate(
+      { _id: quoteId },
+      {
+        isAccepted: true,
+      },
+      { new: true, runValidators: true, session },
+    );
+
+    // AFTER ACCEPT QUOTE BY USER THEN CREATE A ORDER IN DATABASE
+    const orderPayload: TOrder = {
+      orderType: "QUOTE",
+      quote: updatedQuote?._id,
+      amount: quoteData.price,
+      status: ORDER_STATUS.PENDING,
+      user: new Schema.Types.ObjectId(user._id),
+      paymentStatus: "UNPAID",
+      quantity: quoteData.quantity,
+    };
+
+    //const order = await OrderServices.createOrderForQuote(user, orderPayload);
+
+    const result = await OrderModel.create([{ ...orderPayload, user: user._id }], {
+      session,
+    });
+
+    await PaymentModel.create(
+      [
+        {
+          order: result[0]._id,
+          amount: result[0].amount,
+        },
+      ],
+      {
+        session,
+      },
+    );
+
+    await session.commitTransaction();
+    await session.endSession();
+    return result;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw error;
+  }
+};
+
 export const QuoteServices = {
   createQuoteIntoDb,
   getAllQuotesFromDb,
   getQuoteByIdFromDb,
   updateQuoteIntoDb,
   deleteQuoteIntoDb,
+  getMyQuotesFromDb,
+  acceptQuoteIntoDb,
 };

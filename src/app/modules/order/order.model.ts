@@ -5,7 +5,8 @@ import { ORDER_STATUS_ENUM, ORDER_TYPE_ENUM, PAYMENT_STATUS_ENUM } from "./order
 const OrderSchema = new Schema<TOrder>(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    product: { type: Schema.Types.ObjectId, ref: "Product" },
+    quote: { type: Schema.Types.ObjectId, ref: "Quote" },
     quantity: { type: Number, required: true },
     amount: { type: Number, required: true },
     status: {
@@ -26,10 +27,10 @@ const OrderSchema = new Schema<TOrder>(
       default: "UNPAID",
     },
     duoAmount: { type: Number, default: 0 },
-    country: { type: String, required: true },
-    state: { type: String, required: true },
-    city: { type: String, required: true },
-    houseNo: { type: String, required: true },
+    country: { type: String },
+    state: { type: String },
+    city: { type: String },
+    houseNo: { type: String },
   },
   {
     timestamps: true,

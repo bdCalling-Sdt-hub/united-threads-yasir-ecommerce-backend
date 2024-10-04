@@ -8,8 +8,9 @@ const storage = memoryStorage();
 const upload = multer({ storage });
 const router = Router();
 
-router.get("/quote-products", QuoteController.getAllQuote);
+router.get("/quotes", auth("CSR", "ADMIN"), QuoteController.getAllQuote);
 router.get("/single-quote/:id", QuoteController.getQuoteById);
+router.get("/my-quotes", auth("CUSTOMER"), QuoteController.getMyQuotes);
 router.post(
   "/create-quote",
   auth("CUSTOMER"),
@@ -125,7 +126,7 @@ router.patch(
   },
   QuoteController.updateQuote,
 );
-
 router.delete("/delete-quote/:id", auth("ADMIN"), QuoteController.deleteQuote);
+router.patch("/accept-quote/:id", auth("CUSTOMER"), QuoteController.acceptQuote);
 
 export const QuoteRoutes = router;

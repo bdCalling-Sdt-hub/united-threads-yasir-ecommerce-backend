@@ -1,19 +1,20 @@
 import { Schema } from "mongoose";
 
 export type TOrder = {
-  _id: Schema.Types.ObjectId;
+  _id?: Schema.Types.ObjectId;
   user: Schema.Types.ObjectId;
-  product: Schema.Types.ObjectId;
+  product?: Schema.Types.ObjectId;
+  quote?: Schema.Types.ObjectId;
   quantity: number;
   amount: number;
   status: TOrderStatus;
   orderType: TOrderType;
   paymentStatus: TPaymentStatus;
   duoAmount?: number;
-  country: string;
-  state: string;
-  city: string;
-  houseNo: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  houseNo?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

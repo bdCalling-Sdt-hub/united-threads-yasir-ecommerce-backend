@@ -9,6 +9,15 @@ const createPaymentValidation = z.object({
   }),
 });
 
+const createQuotePaymentValidation = z.object({
+  body: z.object({
+    amount: z
+      .number({ required_error: "Amount is required" })
+      .positive({ message: "Amount must be positive" }),
+  }),
+});
+
 export const PaymentValidations = {
   createPaymentValidation,
+  createQuotePaymentValidation,
 };

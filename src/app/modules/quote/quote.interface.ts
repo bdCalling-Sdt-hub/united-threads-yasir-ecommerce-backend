@@ -16,7 +16,8 @@ export type TQuote = {
   size: TProductSize;
   materialPreferences: string;
   isDeleted?: boolean;
-  status?: TQuoteStatus;
+  quoteStatus?: TQuoteStatus;
+  isAccepted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };

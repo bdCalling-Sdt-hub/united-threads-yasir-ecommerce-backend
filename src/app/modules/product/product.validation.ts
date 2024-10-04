@@ -10,6 +10,7 @@ const productImageValidation = z.object({
 const productSchema = z.object({
   name: z.string().min(1, { message: "Product name is required" }),
   images: z.array(productImageValidation).optional(),
+  primaryImage: z.string(),
   description: z.string().min(1, { message: "Product description is required" }),
   shortDescription: z.string().optional(),
   category: z.string({ required_error: "Category is required" }),
@@ -21,6 +22,7 @@ const productSchema = z.object({
 const productUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   images: z.array(productImageValidation).optional(),
+  primaryImage: z.string().optional(),
   description: z.string().min(1).optional(),
   shortDescription: z.string().optional(),
   category: z.string().optional(),

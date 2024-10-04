@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Router } from "express";
+import { Router, Express } from "express";
 import multer, { memoryStorage } from "multer";
-import { uploadManyToS3 } from "../../constant/s3";
+import { uploadManyToS3, uploadToS3 } from "../../constant/s3";
 import auth from "../../middlewares/auth";
 import { ProductController } from "./product.controller";
 import { ProductValidations } from "./product.validation";
+import { TImage } from "../quote-product/quote-product.interface";
 const storage = memoryStorage();
 const upload = multer({ storage });
 const router = Router();
@@ -14,31 +15,58 @@ router.get("/single-product/:id", ProductController.getProductById);
 router.post(
   "/create-product",
   auth("ADMIN"),
-  upload.array("images"),
+  upload.fields([
+    { name: "primaryImage", maxCount: 1 }, // single primary image
+    { name: "images", maxCount: 4 }, // up to 4 additional images
+  ]),
   async (req, res, next) => {
     try {
-      if (req?.files?.length) {
-        const files: TImage[] = (req.files as any[]).map((file) => ({
-          file,
-          path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
-          key: file.originalname,
-        }));
+      const files = req.files as {
+        primaryImage?: Express.Multer.File[];
+        images?: Express.Multer.File[];
+      };
 
-        const images = await uploadManyToS3(files);
+      let primaryImageUrl = null;
+      const images: TImage[] = [];
 
-        if (req.body.data) {
-          req.body = ProductValidations.productSchema.parse({
-            ...JSON.parse(req?.body?.data),
-            images,
-          });
-        } else {
-          req.body = ProductValidations.productSchema.parse({
-            images,
-          });
-        }
-      } else {
-        req.body = ProductValidations.productSchema.parse(JSON.parse(req?.body?.data));
+      // Check for primaryImage
+      if (files?.primaryImage?.[0]) {
+        primaryImageUrl = await uploadToS3({
+          file: files.primaryImage[0],
+          fileName: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+        });
       }
+
+      // Check for additional images
+      if (files?.images?.length) {
+        const urls = await uploadManyToS3(
+          files.images.map((image) => ({
+            file: image,
+            path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+          })),
+        );
+
+        urls.forEach((url) => {
+          if (url) {
+            images.push(url);
+          }
+        });
+      }
+
+      // Handle body data and images
+      if (req.body.data) {
+        req.body = ProductValidations.productSchema.parse({
+          ...JSON.parse(req.body.data),
+          primaryImage: primaryImageUrl,
+          images,
+        });
+      } else {
+        req.body = ProductValidations.productSchema.parse({
+          primaryImage: primaryImageUrl,
+          images,
+        });
+      }
+
       next();
     } catch (error) {
       next(error);
@@ -47,42 +75,75 @@ router.post(
   ProductController.createProduct,
 );
 
-type TImage = {
-  file: any;
-  path: string;
-  key?: string;
-};
-
 router.patch(
   "/update-product/:id",
   auth("ADMIN"),
-  upload.array("images"),
+  upload.fields([
+    { name: "primaryImage", maxCount: 1 }, // Single primary image
+    { name: "images", maxCount: 4 }, // Up to 4 additional images
+  ]),
   async (req, res, next) => {
+    const files = req.files as {
+      primaryImage?: Express.Multer.File[];
+      images?: Express.Multer.File[];
+    };
+
     try {
-      if (req?.files?.length) {
-        const files: TImage[] = (req.files as any[]).map((file) => ({
-          file,
-          path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
-          key: file.originalname,
-        }));
+      let primaryImageUrl = null;
+      const images: TImage[] = [];
 
-        const images = await uploadManyToS3(files);
-
-        if (req.body?.data) {
-          req.body = ProductValidations.productUpdateSchema.parse({
-            ...JSON.parse(req?.body?.data),
-            images: images,
-          });
-        } else {
-          req.body = ProductValidations.productUpdateSchema.parse({
-            images: images,
-          });
-        }
-      } else {
-        req.body = ProductValidations.productUpdateSchema
-          .partial()
-          .parse(JSON.parse(req?.body?.data));
+      // Check for the primaryImage
+      if (files?.primaryImage?.[0]) {
+        primaryImageUrl = await uploadToS3({
+          file: files.primaryImage[0],
+          fileName: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+        });
       }
+
+      // Check for additional images
+      if (files?.images?.length) {
+        const urls = await uploadManyToS3(
+          files.images.map((image) => ({
+            file: image,
+            path: `united-threads/products/${Math.floor(100000 + Math.random() * 900000)}`,
+          })),
+        );
+
+        urls.forEach((url) => {
+          if (url) {
+            images.push(url);
+          }
+        });
+      }
+
+      if (req.body?.data) {
+        const data = req.body.data;
+
+        if (files?.primaryImage?.[0]) {
+          data.primaryImage = primaryImageUrl;
+        }
+
+        if (images.length) {
+          data.images = images;
+        }
+
+        req.body = ProductValidations.productUpdateSchema.parse({
+          ...JSON.parse(data),
+        });
+      } else {
+        const data: Record<string, unknown> = {};
+
+        if (files?.primaryImage?.[0]) {
+          data.primaryImage = primaryImageUrl;
+        }
+
+        if (images.length) {
+          data.images = images;
+        }
+
+        req.body = ProductValidations.productUpdateSchema.parse(data);
+      }
+
       next();
     } catch (error) {
       next(error);

@@ -8,6 +8,7 @@ export type TProduct = {
   description: string;
   shortDescription?: string;
   images: TImage[];
+  primaryImage: string;
   category: Schema.Types.ObjectId;
   quantity: number;
   price: number;

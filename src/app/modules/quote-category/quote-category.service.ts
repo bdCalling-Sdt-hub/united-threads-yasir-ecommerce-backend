@@ -1,11 +1,11 @@
 import httpStatus from "http-status";
-import { TTokenUser } from "../../types/common";
-import UserModel from "../user/user.model";
-import { TCategory } from "./category.interface";
-import AppError from "../../errors/AppError";
-import CategoryModel from "./category.model";
 import QueryBuilder from "../../builder/QueryBuilder";
-import ProductModel from "../product/product.model";
+import AppError from "../../errors/AppError";
+import { TTokenUser } from "../../types/common";
+import { QuoteProductModel } from "../quote-product/quote-product.model";
+import UserModel from "../user/user.model";
+import { TCategory } from "./quote-category.interface";
+import { default as QuoteCategoryModel } from "./quote-category.model";
 
 const createCategoryIntoDb = async (user: TTokenUser, payload: TCategory) => {
   const userData = await UserModel.findById(user._id).select("+password").lean();
@@ -22,7 +22,7 @@ const createCategoryIntoDb = async (user: TTokenUser, payload: TCategory) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
 
-  const result = await CategoryModel.findOneAndUpdate(
+  const result = await QuoteCategoryModel.findOneAndUpdate(
     {
       name: payload.name,
     },
@@ -37,7 +37,7 @@ const createCategoryIntoDb = async (user: TTokenUser, payload: TCategory) => {
 };
 
 const getAllCategoryFromDb = async (query: Record<string, unknown>) => {
-  const categoryQuery = new QueryBuilder(CategoryModel.find({ isDeleted: false }), query)
+  const categoryQuery = new QueryBuilder(QuoteCategoryModel.find({ isDeleted: false }), query)
     .search(["name"])
     .filter()
     .fields();
@@ -48,7 +48,7 @@ const getAllCategoryFromDb = async (query: Record<string, unknown>) => {
   // Add productCount to each category
   const categoriesWithProductCount = await Promise.all(
     categories.map(async (category) => {
-      const productCount = await ProductModel.find({
+      const productCount = await QuoteProductModel.find({
         category: category._id,
       }).countDocuments();
       return { ...category, productCount };
@@ -59,12 +59,12 @@ const getAllCategoryFromDb = async (query: Record<string, unknown>) => {
 };
 
 const updateCategoryIntoDb = async (categoryId: string, payload: Partial<TCategory>) => {
-  const category = await CategoryModel.findById(categoryId);
+  const category = await QuoteCategoryModel.findById(categoryId);
   if (!category) {
     throw new AppError(httpStatus.NOT_FOUND, "Category Not Found");
   }
 
-  const result = await CategoryModel.findOneAndUpdate(
+  const result = await QuoteCategoryModel.findOneAndUpdate(
     { _id: categoryId },
     { ...payload },
     { new: true, runValidators: true },
@@ -73,7 +73,7 @@ const updateCategoryIntoDb = async (categoryId: string, payload: Partial<TCatego
 };
 
 const deleteCategoryIntoDb = async (id: string) => {
-  const result = await CategoryModel.findOneAndUpdate(
+  const result = await QuoteCategoryModel.findOneAndUpdate(
     { _id: id },
     { isDeleted: true },
     { new: true, runValidators: true },
@@ -81,7 +81,7 @@ const deleteCategoryIntoDb = async (id: string) => {
   return result;
 };
 
-export const CategoryServices = {
+export const QuoteCategoryServices = {
   createCategoryIntoDb,
   getAllCategoryFromDb,
   updateCategoryIntoDb,

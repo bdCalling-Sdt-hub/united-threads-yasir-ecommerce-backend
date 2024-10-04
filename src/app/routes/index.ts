@@ -9,6 +9,8 @@ import { ReviewRoutes } from "../modules/review/review.route";
 import { OrderRoutes } from "../modules/order/order.route";
 import { PaymentRoutes } from "../modules/payment/payment.route";
 import { MetaRoutes } from "../modules/meta/meta.route";
+import { QuoteProductRoutes } from "../modules/quote-product/quote-product.route";
+import { QuoteCategoryRoutes } from "../modules/quote-category/quote-category.route";
 
 const router = Router();
 
@@ -28,6 +30,14 @@ const moduleRoutes = [
   {
     path: "/product",
     route: ProductRoute,
+  },
+  {
+    path: "/quote-category",
+    route: QuoteCategoryRoutes,
+  },
+  {
+    path: "/quote-product",
+    route: QuoteProductRoutes,
   },
   {
     path: "/quote",

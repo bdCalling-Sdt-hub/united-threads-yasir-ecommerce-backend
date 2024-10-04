@@ -13,7 +13,7 @@ const quoteSchema = z
     backSide: z.string().min(1, { message: "Back side description is required" }),
     pantoneColor: z.string().min(1, { message: "Pantone color is required" }),
     hexColor: z.string().min(1, { message: "Hex color is required" }),
-    colorDuration: z.string().min(1, { message: "Color duration is required" }),
+    //colorDuration: z.string().min(1, { message: "Color duration is required" }),
     materialPreferences: z.string().min(1, { message: "Material preference is required" }),
   })
   .strict();

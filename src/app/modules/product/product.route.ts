@@ -93,4 +93,6 @@ router.patch(
 
 router.delete("/delete-product/:id", auth("ADMIN"), ProductController.deleteProduct);
 
+router.get("/get-size", ProductController.getProductsCountBySize);
+
 export const ProductRoute = router;

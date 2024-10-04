@@ -26,7 +26,11 @@ const createReviewIntoDb = async (user: TTokenUser, payload: TReview) => {
 
 // Get All Reviews from Database
 const getAllReviewsFromDb = async (query: Record<string, unknown>) => {
-  const reviewQuery = new QueryBuilder(ReviewModel.find(), query).search(["comment"]).filter();
+  const reviewQuery = new QueryBuilder(ReviewModel.find().populate("user"), query)
+    .search(["comment"])
+    .filter()
+    .sort()
+    .fields();
 
   const reviews = await reviewQuery.modelQuery;
   const meta = await reviewQuery.countTotal();

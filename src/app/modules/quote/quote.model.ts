@@ -17,7 +17,7 @@ const QuoteSchema = new Schema<TQuote>(
     backSide: { type: String, required: true },
     pantoneColor: { type: String, required: true },
     hexColor: { type: String, required: true },
-    colorDuration: { type: String, required: true },
+    //colorDuration: { type: String, required: true },
     materialPreferences: { type: String, required: true },
     status: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
     isDeleted: { type: Boolean, default: false },

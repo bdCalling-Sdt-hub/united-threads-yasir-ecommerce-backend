@@ -58,10 +58,21 @@ const deleteProduct = catchAsync(async (req, res) => {
   });
 });
 
+const getProductsCountBySize = catchAsync(async (req, res) => {
+  const result = await ProductServices.getProductCountBySize();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Products count fetched successfully",
+    data: result,
+  });
+});
+
 export const ProductController = {
   createProduct,
   getAllProduct,
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsCountBySize,
 };

@@ -8,7 +8,7 @@ const storage = memoryStorage();
 const upload = multer({ storage });
 const router = Router();
 
-router.get("/quotes", QuoteController.getAllQuote);
+router.get("/quote-products", QuoteController.getAllQuote);
 router.get("/single-quote/:id", QuoteController.getQuoteById);
 router.post(
   "/create-quote",
@@ -16,16 +16,19 @@ router.post(
   upload.fields([
     { name: "frontSide", maxCount: 1 },
     { name: "backSide", maxCount: 1 },
+    { name: "images", maxCount: 4 },
   ]),
   async (req, res, next) => {
     const files = req.files as {
       frontSide?: Express.Multer.File[];
       backSide?: Express.Multer.File[];
+      images?: Express.Multer.File[];
     };
 
     try {
       let frontSideUrl = null;
       let backSideUrl = null;
+      const images = [];
 
       // Check for both frontSide and backSide
       if (files?.frontSide?.[0] && files?.backSide?.[0]) {
@@ -37,6 +40,20 @@ router.post(
           file: files.backSide[0],
           fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
         });
+      }
+
+      if (files?.images?.length) {
+        await Promise.all(
+          files.images.map(async (image) => {
+            const url = await uploadToS3({
+              file: image,
+              fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
+            });
+            if (url) {
+              images.push(url);
+            }
+          }),
+        );
       }
 
       if (req.body.data) {

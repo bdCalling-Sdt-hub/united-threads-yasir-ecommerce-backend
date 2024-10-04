@@ -81,10 +81,41 @@ const deleteProductIntoDb = async (id: string) => {
   return deletedProduct;
 };
 
+const getProductCountBySize = async () => {
+  const result = await ProductModel.aggregate([
+    {
+      // Unwind the size array so that each size in the array is treated as a separate document
+      $unwind: "$size",
+    },
+    {
+      // Match to exclude deleted products
+      $match: {
+        isDeleted: false,
+      },
+    },
+    {
+      // Group by the size and count how many products have that size
+      $group: {
+        _id: "$size",
+        productCount: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // Transform result into the desired format
+  const formattedResult = result.reduce((acc, item) => {
+    acc[item._id] = { productCount: item.productCount };
+    return acc;
+  }, {});
+
+  return formattedResult;
+};
+
 export const ProductServices = {
   createProductIntoDb,
   getAllProductsFromDb,
   getProductByIdFromDb,
   updateProductIntoDb,
   deleteProductIntoDb,
+  getProductCountBySize,
 };

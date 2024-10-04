@@ -1,4 +1,5 @@
 import { Schema } from "mongoose";
+import { TImage } from "../quote-product/quote-product.interface";
 
 export type TProduct = {
   _id: Schema.Types.ObjectId;
@@ -6,7 +7,7 @@ export type TProduct = {
   name: string;
   description: string;
   shortDescription?: string;
-  images: Schema.Types.ObjectId;
+  images: TImage[];
   category: Schema.Types.ObjectId;
   quantity: number;
   price: number;

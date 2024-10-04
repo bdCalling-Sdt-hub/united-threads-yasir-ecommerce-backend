@@ -1,9 +1,10 @@
 import { Router, Express } from "express";
 import multer, { memoryStorage } from "multer";
-import { uploadToS3 } from "../../constant/s3";
+import { uploadManyToS3, uploadToS3 } from "../../constant/s3";
 import auth from "../../middlewares/auth";
 import { QuoteProductController } from "./quote-product.controller";
 import { QuoteProductValidations } from "./quote-product.validation";
+import { TImage } from "./quote-product.interface";
 
 const storage = memoryStorage();
 const upload = multer({ storage });
@@ -12,7 +13,7 @@ const router = Router();
 router.get("/products", QuoteProductController.getAllQuoteProduct);
 router.get("/single-quote/:id", QuoteProductController.getQuoteProductById);
 router.post(
-  "/create-quote-product",
+  "/create-product",
   auth("ADMIN"),
   upload.fields([
     { name: "frontSide", maxCount: 1 },
@@ -29,47 +30,71 @@ router.post(
     try {
       let frontSideUrl = null;
       let backSideUrl = null;
-      const images: string[] = [];
+      const images: TImage[] = [];
 
       // Check for both frontSide and backSide
-      if (files?.frontSide?.[0] && files?.backSide?.[0]) {
+      if (files?.frontSide?.[0]) {
         frontSideUrl = await uploadToS3({
           file: files.frontSide[0],
           fileName: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
         });
+      }
+
+      if (files?.backSide?.[0]) {
         backSideUrl = await uploadToS3({
           file: files.backSide[0],
           fileName: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
         });
       }
 
-      if (images?.length) {
-        await Promise.all(
-          images.map(async (image) => {
-            const url = await uploadToS3({
-              file: image,
-              fileName: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
-            });
-            if (url) {
-              images.push(url);
-            }
-          }),
+      if (files?.images?.length) {
+        const urls = await uploadManyToS3(
+          files.images.map((image) => ({
+            file: image,
+            path: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
+          })),
         );
+
+        urls?.forEach((url) => {
+          if (url) {
+            images.push(url);
+          }
+        });
       }
 
       if (req.body.data) {
-        req.body = QuoteProductValidations.createQuoteProductValidation.parse({
-          ...JSON.parse(req?.body?.data),
-          frontSide: frontSideUrl,
-          backSide: backSideUrl,
-          images,
+        const data = req.body.data;
+        if (files?.frontSide?.[0]) {
+          data.frontSide = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data.backSide = backSideUrl;
+        }
+
+        if (images?.length) {
+          data.images = images;
+        }
+
+        req.body = QuoteProductValidations.updateQuoteProductValidation.parse({
+          ...JSON.parse(data),
         });
       } else {
-        req.body = QuoteProductValidations.createQuoteProductValidation.parse({
-          frontSide: frontSideUrl,
-          backSide: backSideUrl,
-          images,
-        });
+        const data: Record<string, unknown> = {};
+
+        if (files?.frontSide?.[0]) {
+          data.frontSide = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data.backSide = backSideUrl;
+        }
+
+        if (images?.length) {
+          data.images = images;
+        }
+
+        req.body = QuoteProductValidations.updateQuoteProductValidation.parse(data);
       }
 
       next();
@@ -80,55 +105,100 @@ router.post(
   QuoteProductController.createQuoteProduct,
 );
 
-//router.patch(
-//  "/update-quote/:id",
-//  auth("CUSTOMER"),
-//  upload.fields([
-//    { name: "frontSide", maxCount: 1 },
-//    { name: "backSide", maxCount: 1 },
-//  ]),
-//  async (req, res, next) => {
-//    const files = req.files as {
-//      frontSide?: Express.Multer.File[];
-//      backSide?: Express.Multer.File[];
-//    };
+router.patch(
+  "/update-product/:id",
+  auth("ADMIN"),
+  upload.fields([
+    { name: "frontSide", maxCount: 1 },
+    { name: "backSide", maxCount: 1 },
+    { name: "images", maxCount: 4 },
+  ]),
+  async (req, res, next) => {
+    const files = req.files as {
+      frontSide?: Express.Multer.File[];
+      backSide?: Express.Multer.File[];
+      images?: Express.Multer.File[];
+    };
 
-//    try {
-//      let frontSideUrl = null;
-//      let backSideUrl = null;
+    try {
+      let frontSideUrl = null;
+      let backSideUrl = null;
+      const images: TImage[] = [];
 
-//      // Check for both frontSide and backSide
-//      if (files?.frontSide?.[0] && files?.backSide?.[0]) {
-//        frontSideUrl = await uploadToS3({
-//          file: files.frontSide[0],
-//          fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
-//        });
-//        backSideUrl = await uploadToS3({
-//          file: files.backSide[0],
-//          fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
-//        });
-//      }
+      // Check for both frontSide and backSide
+      if (files?.frontSide?.[0]) {
+        frontSideUrl = await uploadToS3({
+          file: files.frontSide[0],
+          fileName: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
+        });
+      }
 
-//      if (req.body.data) {
-//        req.body = QuoteValidation.updateQuoteSchema.parse({
-//          ...JSON.parse(req?.body?.data),
-//          frontSide: frontSideUrl,
-//          backSide: backSideUrl,
-//        });
-//      } else {
-//        req.body = QuoteValidation.updateQuoteSchema.parse({
-//          frontSide: frontSideUrl,
-//          backSide: backSideUrl,
-//        });
-//      }
-//      next();
-//    } catch (error) {
-//      next(error);
-//    }
-//  },
-//  QuoteController.updateQuote,
-//);
+      if (files?.backSide?.[0]) {
+        backSideUrl = await uploadToS3({
+          file: files.backSide[0],
+          fileName: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
+        });
+      }
 
-//router.delete("/delete-quote/:id", auth("ADMIN"), QuoteController.deleteQuote);
+      if (files?.images?.length) {
+        const urls = await uploadManyToS3(
+          files.images.map((image) => ({
+            file: image,
+            path: `united-threads/quotes-product/${Math.floor(100000 + Math.random() * 900000)}`,
+          })),
+        );
 
+        urls?.forEach((url) => {
+          if (url) {
+            images.push(url);
+          }
+        });
+      }
+
+      if (req.body.data) {
+        const data = req.body.data;
+        if (files?.frontSide?.[0]) {
+          data.frontSide = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data.backSide = backSideUrl;
+        }
+
+        if (images?.length) {
+          data.images = images;
+        }
+
+        req.body = QuoteProductValidations.updateQuoteProductValidation.parse({
+          ...JSON.parse(data),
+        });
+      } else {
+        const data: Record<string, unknown> = {};
+
+        if (files?.frontSide?.[0]) {
+          data.frontSide = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data.backSide = backSideUrl;
+        }
+
+        if (images?.length) {
+          data.images = images;
+        }
+
+        req.body = QuoteProductValidations.updateQuoteProductValidation.parse(data);
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+  QuoteProductController.updateQuoteProduct,
+);
+
+router.delete("/delete-product/:id", auth("ADMIN"), QuoteProductController.deleteQuoteProduct);
+
+router.get("/get-size", QuoteProductController.getQuoteProductsCountBySize);
 export const QuoteProductRoutes = router;

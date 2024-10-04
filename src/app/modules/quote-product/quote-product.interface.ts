@@ -10,9 +10,14 @@ export type TQuoteProduct = {
   category: Schema.Types.ObjectId;
   colorsPreferences: string[];
   hexColor: string;
-  images: string[];
+  images: TImage[];
   size: TProductSize[];
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+};
+
+export type TImage = {
+  url: string;
+  key: string;
 };

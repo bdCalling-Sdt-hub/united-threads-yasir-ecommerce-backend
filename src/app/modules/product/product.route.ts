@@ -26,16 +26,14 @@ router.post(
 
         const images = await uploadManyToS3(files);
 
-        const imagesPayload = images.map(({ url }) => url);
-
         if (req.body.data) {
           req.body = ProductValidations.productSchema.parse({
             ...JSON.parse(req?.body?.data),
-            images: imagesPayload,
+            images,
           });
         } else {
           req.body = ProductValidations.productSchema.parse({
-            images: imagesPayload,
+            images,
           });
         }
       } else {
@@ -69,19 +67,21 @@ router.patch(
         }));
 
         const images = await uploadManyToS3(files);
-        const imagesPayload = images.map(({ url }) => url);
+
         if (req.body?.data) {
-          req.body = ProductValidations.productSchema.parse({
+          req.body = ProductValidations.productUpdateSchema.parse({
             ...JSON.parse(req?.body?.data),
-            image: imagesPayload,
+            images: images,
           });
         } else {
-          req.body = ProductValidations.productSchema.parse({
-            image: imagesPayload,
+          req.body = ProductValidations.productUpdateSchema.parse({
+            images: images,
           });
         }
       } else {
-        req.body = ProductValidations.productSchema.partial().parse(JSON.parse(req?.body?.data));
+        req.body = ProductValidations.productUpdateSchema
+          .partial()
+          .parse(JSON.parse(req?.body?.data));
       }
       next();
     } catch (error) {

@@ -1,5 +1,16 @@
 import { model, Schema } from "mongoose";
 import { TQuoteProduct } from "./quote-product.interface";
+import { PRODUCT_SIZE_ENUM } from "../product/product.constant";
+
+export const ProductImageSchema = new Schema(
+  {
+    url: { type: String, required: true },
+    key: { type: String, required: true },
+  },
+  {
+    _id: false,
+  },
+);
 
 const QuoteProductSchema = new Schema<TQuoteProduct>(
   {
@@ -9,12 +20,12 @@ const QuoteProductSchema = new Schema<TQuoteProduct>(
     pantoneColor: { type: String, required: true },
     category: { type: Schema.Types.ObjectId, ref: "QuoteCategory", required: true },
     hexColor: { type: String, required: true },
-    images: [{ type: String, ref: "Image" }],
+    images: [ProductImageSchema],
     colorsPreferences: [{ type: String, required: true }],
     size: [
       {
         type: String,
-        enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+        enum: PRODUCT_SIZE_ENUM,
         required: true,
       },
     ],

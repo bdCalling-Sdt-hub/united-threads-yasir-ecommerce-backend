@@ -10,7 +10,10 @@ const createQuoteProductIntoDb = async (payload: TQuoteProduct) => {
 };
 
 const getAllQuoteProductsFromDb = async (query: Record<string, unknown>) => {
-  const productQuery = new QueryBuilder(QuoteProductModel.find({ isDeleted: false }), query)
+  const productQuery = new QueryBuilder(
+    QuoteProductModel.find({ isDeleted: false }).populate("category"),
+    query,
+  )
     .search(["name", "description", "shortDescription", "size"])
     .filter()
     .sort()

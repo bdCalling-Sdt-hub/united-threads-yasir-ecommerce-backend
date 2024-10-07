@@ -14,12 +14,13 @@ const createQuoteProduct = catchAsync(async (req, res) => {
 });
 
 const getAllQuoteProduct = catchAsync(async (req, res) => {
-  const result = await QuoteProductService.getAllQuoteProductsFromDb(req.query);
+  const { products, meta } = await QuoteProductService.getAllQuoteProductsFromDb(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Quote product fetched successfully",
-    data: result,
+    data: products,
+    meta,
   });
 });
 

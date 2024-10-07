@@ -17,9 +17,7 @@ const QuoteProductSchema = new Schema<TQuoteProduct>(
     name: { type: String, required: true },
     frontSide: { type: String, required: true },
     backSide: { type: String, required: true },
-    pantoneColor: { type: String, required: true },
     category: { type: Schema.Types.ObjectId, ref: "QuoteCategory", required: true },
-    hexColor: { type: String, required: true },
     images: [ProductImageSchema],
     colorsPreferences: [{ type: String, required: true }],
     size: [

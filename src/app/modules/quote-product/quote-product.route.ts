@@ -63,7 +63,7 @@ router.post(
       }
 
       if (req.body.data) {
-        const data = req.body.data;
+        const data = JSON.parse(req?.body?.data);
         if (files?.frontSide?.[0]) {
           data.frontSide = frontSideUrl;
         }
@@ -77,7 +77,7 @@ router.post(
         }
 
         req.body = QuoteProductValidations.updateQuoteProductValidation.parse({
-          ...JSON.parse(data),
+          ...data,
         });
       } else {
         const data: Record<string, unknown> = {};
@@ -156,7 +156,7 @@ router.patch(
       }
 
       if (req.body.data) {
-        const data = req.body.data;
+        const data = JSON.parse(req?.body?.data);
         if (files?.frontSide?.[0]) {
           data.frontSide = frontSideUrl;
         }
@@ -170,7 +170,7 @@ router.patch(
         }
 
         req.body = QuoteProductValidations.updateQuoteProductValidation.parse({
-          ...JSON.parse(data),
+          ...data,
         });
       } else {
         const data: Record<string, unknown> = {};

@@ -6,10 +6,8 @@ export type TQuoteProduct = {
   name: string;
   frontSide: string;
   backSide: string;
-  pantoneColor: string;
   category: Schema.Types.ObjectId;
   colorsPreferences: string[];
-  hexColor: string;
   images: TImage[];
   size: TProductSize[];
   isDeleted?: boolean;

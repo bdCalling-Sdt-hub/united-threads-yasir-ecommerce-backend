@@ -5,6 +5,7 @@ import { TProduct } from "./product.interface";
 import AppError from "../../errors/AppError";
 import ProductModel from "./product.model";
 import QueryBuilder from "../../builder/QueryBuilder";
+import OrderModel from "../order/order.model";
 
 // Create Product in Database
 const createProductIntoDb = async (user: TTokenUser, payload: TProduct) => {
@@ -38,13 +39,25 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
     .fields();
 
   const products = await productQuery.modelQuery;
+
+  const productsWithSalesCount = await Promise.all(
+    products.map(async (product) => {
+      const orderCount =
+        (await OrderModel.find({
+          product: product._id,
+          paymentStatus: "PAID",
+        }).countDocuments()) || 0;
+      return { ...product.toObject(), orderCount }; // toObject() converts Mongoose document to plain object
+    }),
+  );
+
   const meta = await productQuery.countTotal();
-  return { products, meta };
+  return { products: productsWithSalesCount, meta };
 };
 
 // Get Product By ID
 const getProductByIdFromDb = async (id: string) => {
-  const product = await ProductModel.findById(id);
+  const product = await ProductModel.findById(id).populate("user");
   if (!product || product.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }

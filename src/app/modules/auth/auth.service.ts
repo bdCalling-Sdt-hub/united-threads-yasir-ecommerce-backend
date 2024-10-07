@@ -147,12 +147,14 @@ const resendOtp = async (user: TTokenUser, payload: { email?: string }) => {
     { email: userData.email },
     { validation: { isVerified: false, otp, expiry: expiresAt.toString() } },
   );
+
+  //  SEND EMAIL FOR VERIFICATION
   const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
   const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = forgetOtpEmail
     .replace(/{{name}}/g, userData.firstName + " " + userData.lastName)
     .replace(/{{otp}}/g, otp.toString());
-  sendMail({ to: userData.email, html, subject: "Forget Password Otp From Clinica" });
+  sendMail({ to: userData.email, html, subject: "OTP From United Threads" });
 
   // after send verification email put the otp into db
   await UserModel.findByIdAndUpdate(

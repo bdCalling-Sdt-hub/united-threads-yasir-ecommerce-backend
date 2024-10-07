@@ -13,6 +13,7 @@ export type TProduct = {
   quantity: number;
   price: number;
   size: TProductSize[];
+  colorsPreferences: string[];
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

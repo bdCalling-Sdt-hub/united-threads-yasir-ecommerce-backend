@@ -81,7 +81,10 @@ const deleteQuoteIntoDb = async (id: string) => {
 };
 
 const getMyQuotesFromDb = async (user: TTokenUser, query: Record<string, unknown>) => {
-  const quotesQuery = new QueryBuilder(QuoteModel.find({ user: user._id, isDeleted: false }), query)
+  const quotesQuery = new QueryBuilder(
+    QuoteModel.find({ user: user._id, isDeleted: false }).populate("user category"),
+    query,
+  )
     .search(["name", "description", "materialPreferences"])
     .filter()
     .sort()

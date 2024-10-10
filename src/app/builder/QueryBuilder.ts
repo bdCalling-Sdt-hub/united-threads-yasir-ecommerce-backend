@@ -1,3 +1,4 @@
+import moment from "moment";
 import { FilterQuery, Query } from "mongoose";
 
 //class QueryBuilder<T> {
@@ -93,6 +94,23 @@ class QueryBuilder<T> {
         ),
       });
     }
+    return this;
+  }
+
+  createdAtRangeFilter<K extends keyof T>(field: K, createdAt?: string | null | undefined) {
+    if (createdAt) {
+      const startOfDay = moment(createdAt).startOf("day").toDate();
+
+      const endOfDay = moment(createdAt).endOf("day").toDate();
+
+      this.modelQuery = this.modelQuery.find({
+        [field]: {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        },
+      });
+    }
+
     return this;
   }
 

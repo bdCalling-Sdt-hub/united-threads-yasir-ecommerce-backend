@@ -14,7 +14,7 @@ const createSettings = catchAsync(async (req, res) => {
 });
 
 const getSettings = catchAsync(async (req, res) => {
-  const result = await SettingsServices.getSettingsFromDb();
+  const result = await SettingsServices.getSettingsFromDb(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

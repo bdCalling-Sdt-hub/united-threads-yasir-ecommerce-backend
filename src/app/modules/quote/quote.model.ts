@@ -18,7 +18,11 @@ const QuoteSchema = new Schema<TQuote>(
     pantoneColor: { type: String, required: true },
     hexColor: { type: String, required: true },
     materialPreferences: { type: String, required: true },
-    quoteStatus: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
+    quoteStatus: {
+      type: String,
+      enum: ["pending", "processing", "delivered", "canceled"],
+      default: "pending",
+    },
     isAccepted: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },

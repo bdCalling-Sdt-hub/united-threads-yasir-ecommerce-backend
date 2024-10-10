@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Router, Express } from "express";
 import multer, { memoryStorage } from "multer";
 import { uploadToS3 } from "../../constant/s3";
@@ -80,7 +81,7 @@ router.post(
 
 router.patch(
   "/update-quote/:id",
-  auth("CUSTOMER"),
+  auth("CUSTOMER", "CSR"),
   upload.fields([
     { name: "frontSide", maxCount: 1 },
     { name: "backSide", maxCount: 1 },
@@ -96,28 +97,44 @@ router.patch(
       let backSideUrl = null;
 
       // Check for both frontSide and backSide
-      if (files?.frontSide?.[0] && files?.backSide?.[0]) {
+      if (files?.frontSide?.[0]) {
         frontSideUrl = await uploadToS3({
           file: files.frontSide[0],
           fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
         });
+      }
+
+      if (files?.backSide?.[0]) {
         backSideUrl = await uploadToS3({
           file: files.backSide[0],
           fileName: `united-threads/quotes/${Math.floor(100000 + Math.random() * 900000)}`,
         });
       }
 
+      let data: any = {};
       if (req.body.data) {
+        data = req.body.data;
+
+        if (files?.frontSide?.[0]) {
+          data["frontSide"] = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data["backSide"] = backSideUrl;
+        }
+
         req.body = QuoteValidation.updateQuoteSchema.parse({
-          ...JSON.parse(req?.body?.data),
-          frontSide: frontSideUrl,
-          backSide: backSideUrl,
+          ...JSON.parse(data),
         });
       } else {
-        req.body = QuoteValidation.updateQuoteSchema.parse({
-          frontSide: frontSideUrl,
-          backSide: backSideUrl,
-        });
+        if (files?.frontSide?.[0]) {
+          data["frontSide"] = frontSideUrl;
+        }
+
+        if (files?.backSide?.[0]) {
+          data["backSide"] = backSideUrl;
+        }
+        req.body = QuoteValidation.updateQuoteSchema.parse(data);
       }
       next();
     } catch (error) {
@@ -127,6 +144,6 @@ router.patch(
   QuoteController.updateQuote,
 );
 router.delete("/delete-quote/:id", auth("ADMIN"), QuoteController.deleteQuote);
-router.patch("/accept-quote/:id", auth("CUSTOMER"), QuoteController.acceptQuote);
+router.patch("/accept-quote/:id", auth("CUSTOMER", "CSR"), QuoteController.acceptQuote);
 
 export const QuoteRoutes = router;

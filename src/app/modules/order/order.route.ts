@@ -4,7 +4,7 @@ import auth from "../../middlewares/auth";
 
 const router = Router();
 
-router.get("/orders", auth("ADMIN"), OrderController.getAllOrders);
+router.get("/orders", auth("ADMIN", "CSR"), OrderController.getAllOrders);
 router.get("/single-order/:id", auth("ADMIN"), OrderController.getOrderById);
 router.post("/create-order", auth("CUSTOMER", "ADMIN"), OrderController.createOrder);
 router.patch("/update-order/:id", auth("ADMIN"), OrderController.updateOrder);

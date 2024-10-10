@@ -12,6 +12,7 @@ import path from "path";
 import fs from "fs";
 import moment from "moment";
 import { TOrder } from "../order/order.interface";
+import { QuoteProductModel } from "../quote-product/quote-product.model";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -91,6 +92,26 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
         status: PAYMENT_STATUS.PAID,
       },
     ).session(session);
+
+    if (orderDetails?.quote) {
+      await QuoteProductModel.updateOne(
+        {
+          _id: orderDetails?.quote,
+        },
+        {
+          stock: orderDetails?.quote?.stock - 1,
+        },
+      ).session(session);
+    } else if (orderDetails?.product) {
+      await QuoteProductModel.updateOne(
+        {
+          _id: orderDetails?.product,
+        },
+        {
+          stock: orderDetails?.product?.stock - 1,
+        },
+      ).session(session);
+    }
 
     const parentMailTemplate = path.join(process.cwd(), "/src/template/invoice.html");
     const invoiceEmail = fs.readFileSync(parentMailTemplate, "utf-8");

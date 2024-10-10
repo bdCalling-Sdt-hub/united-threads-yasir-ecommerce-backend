@@ -9,6 +9,7 @@ export type TQuoteProduct = {
   category: Schema.Types.ObjectId;
   colorsPreferences: string[];
   images: TImage[];
+  stock: number;
   size: TProductSize[];
   isDeleted?: boolean;
   createdAt?: Date;

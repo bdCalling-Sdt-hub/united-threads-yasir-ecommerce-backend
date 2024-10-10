@@ -26,10 +26,17 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
 // Get All Quote from Database
 const getAllQuotesFromDb = async (query: Record<string, unknown>) => {
+  let createdAt: string | null = null;
+  if (query.createdAt) {
+    createdAt = query.createdAt as string;
+    delete query.createdAt; // Remove createdAt from the main query
+  }
+
   const quoteQuery = new QueryBuilder(QuoteModel.find({ isDeleted: false }).populate("user"), query)
     .search(["name", "description", "materialPreferences"])
     .filter()
     .sort()
+    .createdAtRangeFilter("createdAt", createdAt)
     .paginate()
     .fields();
 
@@ -52,6 +59,8 @@ const getQuoteByIdFromDb = async (id: string) => {
 
 // Update Quote in Database
 const updateQuoteIntoDb = async (quoteId: string, payload: Partial<TQuote>) => {
+  console.log({ payload });
+
   const updatedQuote = await QuoteModel.findOneAndUpdate(
     { _id: quoteId, isDeleted: false },
     { ...payload },
@@ -81,13 +90,22 @@ const deleteQuoteIntoDb = async (id: string) => {
 };
 
 const getMyQuotesFromDb = async (user: TTokenUser, query: Record<string, unknown>) => {
+  let createdAt: string | null = null;
+
+  // Extract the createdAt date and remove it from the query object
+  if (query.createdAt) {
+    createdAt = query.createdAt as string;
+    delete query.createdAt; // Remove createdAt from the main query
+  }
+
   const quotesQuery = new QueryBuilder(
-    QuoteModel.find({ user: user._id, isDeleted: false }).populate("user category"),
+    QuoteModel.find({ user: user._id, isDeleted: false }).populate("category"),
     query,
   )
     .search(["name", "description", "materialPreferences"])
     .filter()
     .sort()
+    .createdAtRangeFilter("createdAt", createdAt)
     .paginate()
     .fields();
 

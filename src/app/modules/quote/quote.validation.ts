@@ -13,6 +13,7 @@ const quoteSchema = z
     backSide: z.string().min(1, { message: "Back side description is required" }),
     pantoneColor: z.string().min(1, { message: "Pantone color is required" }),
     hexColor: z.string().min(1, { message: "Hex color is required" }),
+
     //colorDuration: z.string().min(1, { message: "Color duration is required" }),
     materialPreferences: z.string().min(1, { message: "Material preference is required" }),
   })
@@ -27,11 +28,11 @@ const updateQuoteSchema = z
     frontSide: z.any().optional(),
     backSide: z.any().optional(),
     pantoneColor: z.string().optional(),
+    quoteStatus: z.string().optional(),
     hexColor: z.string().optional(),
-    colorDuration: z.string().optional(),
+    //colorDuration: z.string().optional(),
     materialPreferences: z.string().optional(),
   })
-  .partial()
   .strict();
 
 export const QuoteValidation = {

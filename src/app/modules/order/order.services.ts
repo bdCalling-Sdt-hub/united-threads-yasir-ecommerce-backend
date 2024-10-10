@@ -96,15 +96,26 @@ const createOrderForQuote = async (user: TTokenUser, payload: TOrder) => {
 
 // Get All Orders from Database
 const getAllOrdersFromDb = async (query: Record<string, unknown>) => {
-  const orderQuery = new QueryBuilder(OrderModel.find().populate("user product"), query)
+  let createdAt: string | null = null;
+
+  // Extract the createdAt date and remove it from the query object
+  if (query.createdAt) {
+    createdAt = query.createdAt as string;
+    delete query.createdAt; // Remove createdAt from the main query
+  }
+
+  const orderQuery = new QueryBuilder(OrderModel.find(), query)
     .search(["status", "orderType", "paymentStatus", "city", "state"])
     .filter()
+    .createdAtRangeFilter("createdAt", createdAt)
     .sort()
     .paginate()
     .fields();
 
-  const orders = await orderQuery.modelQuery;
+  // Execute the query and get results
+  const orders = await orderQuery.modelQuery.populate("user product quote");
   const meta = await orderQuery.countTotal();
+
   return { orders, meta };
 };
 

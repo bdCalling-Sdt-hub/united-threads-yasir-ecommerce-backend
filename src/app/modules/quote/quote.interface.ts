@@ -10,7 +10,6 @@ export type TQuote = {
   pantoneColor: string;
   category: Schema.Types.ObjectId;
   hexColor: Schema.Types.ObjectId;
-  colorDuration: Schema.Types.ObjectId;
   quantity: number;
   price: number;
   size: TProductSize;
@@ -22,4 +21,4 @@ export type TQuote = {
   updatedAt?: Date;
 };
 
-export type TQuoteStatus = "pending" | "processing" | "completed" | "canceled";
+export type TQuoteStatus = "pending" | "processing" | "delivered" | "canceled";

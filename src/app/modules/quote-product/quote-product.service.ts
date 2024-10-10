@@ -3,6 +3,7 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { TQuoteProduct } from "./quote-product.interface";
 import { QuoteProductModel } from "./quote-product.model";
+import OrderModel from "../order/order.model";
 
 const createQuoteProductIntoDb = async (payload: TQuoteProduct) => {
   const result = await QuoteProductModel.create(payload);
@@ -21,8 +22,20 @@ const getAllQuoteProductsFromDb = async (query: Record<string, unknown>) => {
     .fields();
 
   const products = await productQuery.modelQuery;
+
+  const productsWithSalesCount = await Promise.all(
+    products.map(async (product) => {
+      const orderCount =
+        (await OrderModel.find({
+          product: product._id,
+          paymentStatus: "PAID",
+        }).countDocuments()) || 0;
+      return { ...product.toObject(), orderCount }; // toObject() converts Mongoose document to plain object
+    }),
+  );
+
   const meta = await productQuery.countTotal();
-  return { products, meta };
+  return { products: productsWithSalesCount, meta };
 };
 
 // Get Product By ID

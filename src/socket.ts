@@ -171,6 +171,12 @@ const initializeSocketIO = (server: HttpServer) => {
         }
       });
 
+      socket.on("typing", ({ receiverId }, callback) => {
+        const receiver = "typing::" + receiverId;
+        io.emit(receiver, { data: true });
+        callback({ success: true, message: "Typing" });
+      });
+
       socket.on("seen", async ({ chatId }, callback) => {
         const chatList = await ChatModel.findById(chatId);
 

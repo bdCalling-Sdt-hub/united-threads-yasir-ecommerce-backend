@@ -113,8 +113,6 @@ const initializeSocketIO = (server: HttpServer) => {
         try {
           const chatList = await ChatServices.getMyChatListFromDb(user._id);
 
-          console.log(chatList);
-
           sendSocketEmit(socket, "my-chat-list", {
             success: true,
             message: "My chat list",

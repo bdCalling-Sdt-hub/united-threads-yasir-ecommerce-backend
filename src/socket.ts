@@ -13,6 +13,7 @@ import MessageModel from "./app/modules/message/message.model";
 import { MessageServices } from "./app/modules/message/message.service";
 import UserModel from "./app/modules/user/user.model";
 import { TTokenUser } from "./app/types/common";
+import { TUser } from "./app/modules/user/user.interface";
 const initializeSocketIO = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
@@ -32,14 +33,29 @@ const initializeSocketIO = (server: HttpServer) => {
       // GET USER ACCESS TOKEN FROM HEADERS
       const accessToken = socket.handshake.auth?.token || socket.handshake.headers?.token;
       if (!accessToken) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your access token");
+        return sendSocketEmit(socket, "error", {
+          success: false,
+          message: "Please provide your access token",
+        });
       }
 
+      let user = null;
       // VERIFY TOKEN
-      const user = verifyToken(accessToken, config.jwt_access_secret as Secret) as TTokenUser;
+      try {
+        user = verifyToken(accessToken, config.jwt_access_secret as Secret) as TTokenUser;
+      } catch (error) {
+        console.log("JWT verification error:", error);
+        return sendSocketEmit(socket, "error", {
+          success: false,
+          message: "Invalid or expired access token",
+        });
+      }
 
       if (!user) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Invalid access token");
+        return sendSocketEmit(socket, "error", {
+          success: false,
+          message: "Invalid access token",
+        });
       }
 
       socket.join(user._id);
@@ -54,7 +70,19 @@ const initializeSocketIO = (server: HttpServer) => {
       // MESSAGE PAGE INFORMATION
       socket.on("message-page", async ({ userId }, callback) => {
         try {
-          const userDetails = await UserModel.findById(userId);
+          let userDetails: TUser | null = null;
+          if (!userId && user.role === "CSR") {
+            socket.emit("error", {
+              success: false,
+              message: "Please provide user id",
+            });
+            return;
+          }
+
+          if (!userId) {
+            userDetails = await UserModel.findOne({ role: "CSR" });
+          }
+
           if (!userDetails) {
             throw new AppError(httpStatus.NOT_FOUND, "User not found");
           }
@@ -85,6 +113,8 @@ const initializeSocketIO = (server: HttpServer) => {
         try {
           const chatList = await ChatServices.getMyChatListFromDb(user._id);
 
+          console.log(chatList);
+
           sendSocketEmit(socket, "my-chat-list", {
             success: true,
             message: "My chat list",
@@ -101,117 +131,81 @@ const initializeSocketIO = (server: HttpServer) => {
 
       // SEND MESSAGE
       socket.on("send-message", async ({ receiverId, text, file }, callback) => {
-        if (!receiverId || (!text && !file))
-          return callback({ success: false, message: "Receiver ID and text are required" });
+        let receiver = receiverId;
+        if (!text && !file)
+          return callback({ success: false, message: "Please provide text or file" });
 
         try {
+          if (receiverId === user._id) {
+            return callback({ success: false, message: "You can't send message to yourself" });
+          }
+
+          if (!receiverId && user.role === "CSR") {
+            socket.emit("error", { success: false, message: "CSR not found" });
+            return;
+          }
+
+          if (!receiverId) {
+            const csr = await UserModel.findOne({ role: "CSR" });
+
+            if (!csr) {
+              socket.emit("error", { success: false, message: "CSR not found" });
+              return;
+            }
+
+            receiver = receiverId || csr._id;
+          }
+
           let chatList = await ChatModel.findOne({
-            //  FIND CHAT LIST WHERE IS USER AND RECEIVER EXIST
             participants: {
-              $all: [{ $elemMatch: { user: user._id } }, { $elemMatch: { user: receiverId } }],
+              $all: [{ $elemMatch: { user: user._id } }, { $elemMatch: { user: receiver } }],
             },
           });
 
           if (!chatList) {
-            //  IF CHAT LIST IS NOT EXIST CREATE A NEW CHAT LIST FOR SENDER AND RECEIVER
-            chatList = await ChatServices.createChatIntoDb(user, receiverId);
+            chatList = await ChatServices.createChatIntoDb(user, receiver);
           }
 
           const message = await MessageModel.create({
             sender: user._id,
-            receiver: receiverId,
+            receiver: receiver,
             chat: chatList._id,
             text,
             file,
           });
 
-          io.emit("new-message::" + receiverId, message);
+          io.emit("new-message::" + receiver, message);
           io.emit("new-message::" + user._id, message);
+
           const getPreMessage = await MessageModel.find({
             $or: [
               {
                 sender: user?._id,
-                receiver: receiverId,
+                receiver: receiver,
               },
               {
-                sender: receiverId,
+                sender: receiver,
                 receiver: user?._id,
               },
             ],
           }).sort({ updatedAt: 1 });
 
-          const senderMessage = "message::" + user._id;
-          const receiverMessage = "message::" + receiverId;
-
-          io.emit(senderMessage, { data: getPreMessage || [] });
-          io.emit(receiverMessage, { data: getPreMessage || [] });
-
-          //socket.emit("message", { data: getPreMessage } || []);
-
-          //  NEED TO INFORM RECEIVER OR SENDER FOR UPDATE THE CHAT LIST
+          io.emit("message::" + user._id, { data: getPreMessage || [] });
+          io.emit("message::" + receiver, { data: getPreMessage || [] });
 
           const ChatListUser1 = await ChatServices.getMyChatListFromDb(user._id);
+          const ChatListUser2 = await ChatServices.getMyChatListFromDb(receiver);
 
-          const ChatListUser2 = await ChatServices.getMyChatListFromDb(receiverId);
-
-          const user1Chat = "chat-list::" + user._id;
-
-          const user2Chat = "chat-list::" + receiverId;
-
-          io.emit(user1Chat, { data: ChatListUser1 });
-          io.emit(user2Chat, { data: ChatListUser2 });
-
-          // Send the message to both sender and receiver
-          //io.to(receiverId).emit("receive-message", message);
-          //io.to(user._id.toString()).emit("receive-message", message);
-          //callback({ success: true, message });
+          io.emit("chat-list::" + user._id, { data: ChatListUser1 });
+          io.emit("chat-list::" + receiver, { data: ChatListUser2 });
         } catch (error: any) {
           console.log(error);
           callback({ success: false, message: error.message });
         }
       });
 
-      socket.on("typing", ({ receiverId }, callback) => {
-        const receiver = "typing::" + receiverId;
-        io.emit(receiver, { data: true });
-        callback({ success: true, message: "Typing" });
-      });
-
-      socket.on("seen", async ({ chatId }, callback) => {
-        const chatList = await ChatModel.findById(chatId);
-
-        if (!chatList) {
-          throw new AppError(httpStatus.NOT_FOUND, "Chat not found");
-        }
-
-        try {
-          await MessageServices.seenMessagesIntoDb(user);
-          const ChatListUser1 = await ChatServices.getMyChatListFromDb(
-            chatList.participants[0].user.toString(),
-          );
-
-          const ChatListUser2 = await ChatServices.getMyChatListFromDb(
-            chatList.participants[1].user.toString(),
-          );
-
-          const user1Chat = "chat-list::" + chatList.participants[0].user.toString();
-
-          const user2Chat = "chat-list::" + chatList.participants[1].user.toString();
-
-          io.emit(user1Chat, { data: ChatListUser1 });
-          io.emit(user2Chat, { data: ChatListUser2 });
-        } catch (error: any) {
-          console.log(error);
-          callback({
-            success: false,
-            message: error.message,
-          });
-        }
-      });
-
       socket.on("disconnect", () => {
         onlineUsers.delete(user?._id);
-        //io.emit("onlineUser", Array.from(onlineUsers));
         sendSocketEmit(socket, "online-users", {
           success: true,
           message: "A user disconnected",
@@ -219,8 +213,12 @@ const initializeSocketIO = (server: HttpServer) => {
         });
         console.log("disconnect user ", socket.id);
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log("Connection error:", error);
+      sendSocketEmit(socket, "error", {
+        success: false,
+        message: error.message || "An error occurred",
+      });
     }
   });
 
@@ -230,7 +228,7 @@ const initializeSocketIO = (server: HttpServer) => {
 type TSocketResponse<T> = {
   success: boolean;
   message: string;
-  data: T;
+  data?: T;
 };
 
 const sendSocketEmit = <T>(socket: Socket<any>, emit: string, response: TSocketResponse<T>) => {

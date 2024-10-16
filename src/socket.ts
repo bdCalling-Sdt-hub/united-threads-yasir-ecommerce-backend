@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { Server as HttpServer } from "http";
-import httpStatus from "http-status";
 import { Secret } from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import config from "./app/config";
-import AppError from "./app/errors/AppError";
+//import AppError from "./app/errors/AppError";
 import { verifyToken } from "./app/modules/auth/auth.utils";
 import { ChatModel } from "./app/modules/chat/chat.model";
 import { ChatServices } from "./app/modules/chat/chat.service";
 import MessageModel from "./app/modules/message/message.model";
 import { MessageServices } from "./app/modules/message/message.service";
+import { TUser } from "./app/modules/user/user.interface";
 import UserModel from "./app/modules/user/user.model";
 import { TTokenUser } from "./app/types/common";
-import { TUser } from "./app/modules/user/user.interface";
+import { TChat } from "./app/modules/chat/chat.interface";
 const initializeSocketIO = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
@@ -61,10 +61,15 @@ const initializeSocketIO = (server: HttpServer) => {
       socket.join(user._id);
 
       onlineUsers.add(user._id);
-      sendSocketEmit(socket, "online-users", {
-        success: true,
-        message: "New user connected",
-        data: Array.from(onlineUsers),
+
+      //sendSocketEmit(socket, "online-users", {
+      //  success: true,
+      //  message: "New user connected",
+      //  data: Array.from(onlineUsers),
+      //});
+
+      ChatServices.getMyChatListFromDb(user._id).then((result) => {
+        io.emit("chat-list::" + user._id, { data: result });
       });
 
       // MESSAGE PAGE INFORMATION
@@ -83,9 +88,24 @@ const initializeSocketIO = (server: HttpServer) => {
             userDetails = await UserModel.findOne({ role: "CSR" });
           }
 
-          if (!userDetails) {
-            throw new AppError(httpStatus.NOT_FOUND, "User not found");
+          if (userId) {
+            userDetails = await UserModel.findOne({ _id: userId });
           }
+
+          if (!userDetails) {
+            //throw new AppError(httpStatus.NOT_FOUND, "User not found");
+            socket.emit("error", {
+              success: false,
+              message: "User not found",
+            });
+            return;
+          }
+
+          sendSocketEmit(socket, "online-users", {
+            success: true,
+            message: "New user connected",
+            data: Array.from(onlineUsers),
+          });
 
           sendSocketEmit(socket, "user-details", {
             success: true,
@@ -93,7 +113,12 @@ const initializeSocketIO = (server: HttpServer) => {
             data: userDetails,
           });
 
-          const messages = await MessageServices.getMyMessageListCustomer(user);
+          const messages = await MessageServices.getMyMessageListCustomer(
+            user,
+            userDetails._id.toString(),
+          );
+
+          //console.log({ user, receiver: userDetails._id.toString() });
 
           sendSocketEmit(socket, "my-messages", {
             success: true,
@@ -129,8 +154,19 @@ const initializeSocketIO = (server: HttpServer) => {
 
       // SEND MESSAGE
       socket.on("send-message", async ({ receiverId, text, file }, callback) => {
+        const senderDetails = await UserModel.findById(user._id);
+
+        if (!senderDetails) {
+          socket.emit("error", { success: false, message: "User not found" });
+          return;
+        }
+        if (senderDetails.isActive === false) {
+          socket.emit("error", { success: false, message: "Your account is blocked" });
+          return;
+        }
+
         let receiver = receiverId;
-        if (!text && !file)
+        if (!text && !file && !Array.isArray(file) && file.length === 0)
           return callback({ success: false, message: "Please provide text or file" });
 
         try {
@@ -164,13 +200,15 @@ const initializeSocketIO = (server: HttpServer) => {
             chatList = await ChatServices.createChatIntoDb(user, receiver);
           }
 
-          const message = await MessageModel.create({
+          const payload: Record<string, any> = {
             sender: user._id,
             receiver: receiver,
             chat: chatList._id,
             text,
-            file,
-          });
+            file: file || [],
+          };
+
+          const message = await MessageModel.create(payload);
 
           io.emit("new-message::" + receiver, message);
           io.emit("new-message::" + user._id, message);
@@ -199,6 +237,225 @@ const initializeSocketIO = (server: HttpServer) => {
         } catch (error: any) {
           console.log(error);
           callback({ success: false, message: error.message });
+        }
+      });
+
+      socket.on("seen", async ({ chatId }, callback) => {
+        try {
+          if (!chatId) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "chatId id is required",
+              });
+            }
+            io.emit("error", {
+              success: false,
+              message: "chatId id is required",
+            });
+            return;
+          }
+
+          const chatList: TChat | null = await ChatModel.findById(chatId);
+          if (!chatList) {
+            //callback({
+            //  success: false,
+            //  message: "chat id is not valid",
+            //});
+            io.emit("error", {
+              success: false,
+              message: "chat id is not valid",
+            });
+            //throw new AppError(httpStatus.BAD_REQUEST, "chat id is not valid");
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "chat id is not valid",
+              });
+            }
+
+            return;
+          }
+
+          const messageIdList = await MessageModel.aggregate([
+            {
+              $match: {
+                chat: chatList._id,
+                seen: false,
+                sender: { $ne: user?._id },
+              },
+            },
+            { $group: { _id: null, ids: { $push: "$_id" } } },
+            { $project: { _id: 0, ids: 1 } },
+          ]);
+
+          const unseenMessageIdList = messageIdList.length > 0 ? messageIdList[0].ids : [];
+
+          // Update the unseen messages to seen
+          await MessageModel.updateMany(
+            { _id: { $in: unseenMessageIdList } },
+            { $set: { seen: true } },
+          );
+
+          const user1 = chatList.participants[0];
+          const user2 = chatList.participants[1];
+
+          //----------------------ChatList------------------------//
+          const ChatListUser1 = await ChatServices.getMyChatListFromDb(user1?.user?.toString());
+
+          const ChatListUser2 = await ChatServices.getMyChatListFromDb(user2?.user?.toString());
+
+          const user1Chat = "chat-list::" + user1.toString();
+          const user2Chat = "chat-list::" + user2.toString();
+
+          io.emit(user1Chat, { success: true, data: ChatListUser1 });
+          io.emit(user2Chat, { success: true, data: ChatListUser2 });
+        } catch (error: any) {
+          callback({
+            success: false,
+            message: error.message,
+          });
+          console.error("Error in seen event:", error);
+          socket.emit("error", { message: error.message });
+        }
+      });
+
+      // start typing
+      socket.on("typing", async ({ receiverId }, callback) => {
+        try {
+          if (!receiverId) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "Receiver id is required",
+              });
+            }
+            return;
+          }
+
+          const typeUser = "typing::" + receiverId;
+          const userDetails = await UserModel.findOne({ _id: user?._id });
+
+          io.emit(typeUser, { success: true, data: userDetails });
+        } catch (error: any) {
+          callback({
+            success: false,
+            message: error.message,
+          });
+          console.error("Error in typing event:", error);
+          socket.emit("error", { message: error.message });
+        }
+      });
+
+      socket.on("stop-typing", async ({ receiverId }, callback) => {
+        try {
+          if (!receiverId) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "Receiver id is required",
+              });
+            }
+            return;
+          }
+
+          const stopTyping = "stop-typing::" + receiverId;
+
+          io.emit(stopTyping, { success: true, data: user });
+        } catch (error: any) {
+          callback({
+            success: false,
+            message: error.message,
+          });
+          console.error("Error in typing event:", error);
+          socket.emit("error", { message: error.message });
+        }
+      });
+
+      socket.on("block", async ({ receiverId }, callback) => {
+        try {
+          if (!receiverId) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "Receiver id is required",
+              });
+            }
+            return;
+          }
+
+          const blockUser = "block::" + receiverId;
+          const userDetails = await UserModel.findOneAndUpdate(
+            { _id: receiverId, isActive: true },
+            { isActive: false },
+          );
+
+          if (!userDetails) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "User not found",
+              });
+            }
+            return;
+          }
+
+          socket.emit("user-details", { success: true, data: userDetails });
+
+          io.emit(blockUser, { success: true, data: userDetails });
+        } catch (error: any) {
+          if (typeof callback === "function") {
+            callback({
+              success: false,
+              message: error.message,
+            });
+          }
+          console.error("Error in typing event:", error);
+          socket.emit("error", { message: error.message });
+        }
+      });
+
+      socket.on("unblock", async ({ receiverId }, callback) => {
+        try {
+          if (!receiverId) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "Receiver id is required",
+              });
+            }
+            return;
+          }
+
+          const unblockUser = "unblock::" + receiverId;
+
+          const userDetails = await UserModel.findOneAndUpdate(
+            { _id: receiverId, isActive: false },
+            { isActive: true },
+          );
+
+          if (!userDetails) {
+            if (typeof callback === "function") {
+              callback({
+                success: false,
+                message: "User not found",
+              });
+            }
+            return;
+          }
+
+          socket.emit("user-details", { success: true, data: userDetails });
+
+          io.emit(unblockUser, { success: true, data: userDetails });
+        } catch (error: any) {
+          if (typeof callback === "function") {
+            callback({
+              success: false,
+              message: error.message,
+            });
+          }
+          console.error("Error in typing event:", error);
+          socket.emit("error", { message: error.message });
         }
       });
 

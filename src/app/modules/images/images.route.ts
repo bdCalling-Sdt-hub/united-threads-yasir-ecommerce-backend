@@ -32,3 +32,5 @@ router.post(
   },
   ImageController.uploadImages,
 );
+
+export const ImageRoutes = router;

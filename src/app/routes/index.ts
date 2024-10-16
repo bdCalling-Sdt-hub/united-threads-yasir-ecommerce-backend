@@ -11,6 +11,8 @@ import { PaymentRoutes } from "../modules/payment/payment.route";
 import { MetaRoutes } from "../modules/meta/meta.route";
 import { QuoteProductRoutes } from "../modules/quote-product/quote-product.route";
 import { QuoteCategoryRoutes } from "../modules/quote-category/quote-category.route";
+import { ImageRoutes } from "../modules/images/images.route";
+import { MessageRouter as MessageRoutes } from "../modules/message/messageRoute";
 
 const router = Router();
 
@@ -62,6 +64,14 @@ const moduleRoutes = [
   {
     path: "/meta",
     route: MetaRoutes,
+  },
+  {
+    path: "/image",
+    route: ImageRoutes,
+  },
+  {
+    path: "/message",
+    route: MessageRoutes,
   },
 ];
 

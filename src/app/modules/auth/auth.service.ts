@@ -65,12 +65,12 @@ const signUpIntoDb = async (payload: TUser) => {
 
 const verifyAccount = async (token: string, payload: { otp: number }) => {
   if (!token) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your token");
+    throw new AppError(httpStatus.BAD_REQUEST, "Please provide your token");
   }
 
   const decode = verifyToken(token, config.jwt_reset_secret as Secret);
   if (!decode) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Token");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid Token");
   }
 
   const userData = await UserModel.findOne({ email: decode.email }).select("+validation.otp");
@@ -91,7 +91,7 @@ const verifyAccount = async (token: string, payload: { otp: number }) => {
   }
 
   if (userData.validation?.otp !== payload.otp) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Otp");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid Otp");
   }
 
   await UserModel.findByIdAndUpdate(
@@ -286,14 +286,8 @@ const forgetPasswordIntoDb = async (email: string) => {
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
   }
-  if (!userData.isActive) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
-  }
   if (userData.isDelete) {
     throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
-  }
-  if (!userData.validation?.isVerified) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);

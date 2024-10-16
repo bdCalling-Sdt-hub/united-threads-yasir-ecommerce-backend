@@ -11,12 +11,28 @@ const createQuoteProductIntoDb = async (payload: TQuoteProduct) => {
 };
 
 const getAllQuoteProductsFromDb = async (query: Record<string, unknown>) => {
-  const productQuery = new QueryBuilder(
-    QuoteProductModel.find({ isDeleted: false }).populate("category"),
-    query,
-  )
-    .search(["name", "description", "shortDescription", "size"])
-    .filter()
+  const correctQuery: Record<string, unknown> = {};
+  Object.keys(query).forEach((key) => {
+    if (query[key]) {
+      correctQuery[key] = query[key];
+    }
+  });
+
+  let productQuery = new QueryBuilder(
+    QuoteProductModel.find({ isDeleted: false }),
+    correctQuery,
+  ).search(["name", "description", "shortDescription"]);
+
+  // Handle filtering by size if it's provided in the query
+  if (correctQuery.size) {
+    productQuery = productQuery.filterFromArray("size", correctQuery.size as string[]);
+    // Remove 'size' from the main correctQuery to avoid double filtering
+    delete correctQuery.size;
+  }
+
+  // Apply generic filtering, sorting, pagination, and field selection
+  productQuery = productQuery
+    .filter() // Apply filters from correctQuery
     .sort()
     .paginate()
     .fields();

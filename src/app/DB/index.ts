@@ -42,7 +42,7 @@ const seedAdminAndCSR = async () => {
   admin.password = bcrypt.hashSync(admin.password, Number(config.bcrypt_salt_rounds));
 
   // seed  admin
-  const isAdminExists = await UserModel.findOne({ role: admin.role, email: admin.email });
+  const isAdminExists = await UserModel.findOne({ role: admin.role });
   if (!isAdminExists) {
     try {
       await UserModel.create(admin);
@@ -52,7 +52,7 @@ const seedAdminAndCSR = async () => {
   }
 
   // seed csr
-  const isCsrExists = await UserModel.findOne({ role: csr.role, email: csr.email });
+  const isCsrExists = await UserModel.findOne({ role: csr.role });
   if (!isCsrExists) {
     try {
       csr.password = bcrypt.hashSync(csr.password, Number(config.bcrypt_salt_rounds));

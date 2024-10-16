@@ -6,6 +6,7 @@ import AppError from "../../errors/AppError";
 import ProductModel from "./product.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import OrderModel from "../order/order.model";
+import ReviewModel from "../review/review.model";
 
 // Create Product in Database
 const createProductIntoDb = async (user: TTokenUser, payload: TProduct) => {
@@ -31,9 +32,28 @@ const createProductIntoDb = async (user: TTokenUser, payload: TProduct) => {
 
 // Get All Products from Database
 const getAllProductsFromDb = async (query: Record<string, unknown>) => {
-  const productQuery = new QueryBuilder(ProductModel.find({ isDeleted: false }), query)
-    .search(["name", "description", "shortDescription", "size"])
-    .filter()
+  const correctQuery: Record<string, unknown> = {};
+  Object.keys(query).forEach((key) => {
+    if (query[key]) {
+      correctQuery[key] = query[key];
+    }
+  });
+
+  // Initialize the query builder
+  let productQuery = new QueryBuilder(ProductModel.find({ isDeleted: false }), correctQuery).search(
+    ["name", "description", "shortDescription"],
+  );
+
+  // Handle filtering by size if it's provided in the query
+  if (correctQuery.size) {
+    productQuery = productQuery.filterFromArray("size", correctQuery.size as string[]);
+    // Remove 'size' from the main correctQuery to avoid double filtering
+    delete correctQuery.size;
+  }
+
+  // Apply generic filtering, sorting, pagination, and field selection
+  productQuery = productQuery
+    .filter() // Apply filters from correctQuery
     .sort()
     .paginate()
     .fields();
@@ -47,7 +67,15 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
           product: product._id,
           paymentStatus: "PAID",
         }).countDocuments()) || 0;
-      return { ...product.toObject(), orderCount }; // toObject() converts Mongoose document to plain object
+      const reviews = await ReviewModel.find({ product: product._id });
+      const averageRating =
+        reviews.map((review) => review.rating).reduce((a, b) => a + b, 0) / reviews.length || 0;
+      return {
+        ...product.toObject(),
+        orderCount,
+        averageRating,
+        totalReviews: reviews.length,
+      }; // toObject() converts Mongoose document to plain object
     }),
   );
 

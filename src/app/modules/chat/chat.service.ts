@@ -65,7 +65,6 @@ const getMyChatListFromDb = async (userId: string) => {
       latestMessage,
       unreadMessageCount,
     };
-    console.log(latestMessage, ":::::::::::::::::::");
 
     if (info.latestMessage?.sender === userData._id) {
       //delete info.latestMessage.sender;

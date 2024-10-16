@@ -50,9 +50,12 @@ const seenMessagesIntoDb = async (user: TTokenUser) => {
   return result;
 };
 
-const getMyMessageListCustomer = async (user: TTokenUser) => {
+const getMyMessageListCustomer = async (user: TTokenUser, receiver: string) => {
   const messages = await MessageModel.find({
-    $or: [{ sender: user._id }, { receiver: user._id }],
+    $or: [
+      { sender: user._id, receiver },
+      { receiver: user._id, sender: receiver },
+    ],
   }).lean();
   return messages;
 };

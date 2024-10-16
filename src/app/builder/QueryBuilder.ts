@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import moment from "moment";
 import { FilterQuery, Query } from "mongoose";
 
@@ -122,6 +123,15 @@ class QueryBuilder<T> {
     });
 
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
+    return this;
+  }
+
+  filterFromArray(field: string, values: any[]) {
+    if (values && values.length > 0) {
+      this.modelQuery = this.modelQuery.find({
+        [field]: { $in: values },
+      });
+    }
     return this;
   }
 

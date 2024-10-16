@@ -8,7 +8,7 @@ const messageSchema = new Schema<TMessage>(
     chat: { type: Schema.Types.ObjectId, ref: "Chat", required: true },
     text: { type: String, default: null },
     seen: { type: Boolean, default: false },
-    file: { type: String, default: null },
+    file: [{ type: String, default: null }],
   },
   {
     timestamps: true,

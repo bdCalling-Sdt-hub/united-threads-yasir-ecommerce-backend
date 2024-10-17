@@ -17,6 +17,8 @@ const orderSchema = z.object({
     country: z.string().min(1, { message: "Country is required" }),
     state: z.string().min(1, { message: "State is required" }),
     city: z.string().min(1, { message: "City is required" }),
+    color: z.string().min(1, { message: "Color is required" }),
+    size: z.string().min(1, { message: "Size is required" }),
     houseNo: z.string().min(1, { message: "House number is required" }),
     area: z.string().min(1, { message: "Area is required" }),
   }),

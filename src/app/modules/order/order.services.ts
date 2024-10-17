@@ -216,6 +216,17 @@ const getMyOrdersFromDb = async (user: TTokenUser, query: Record<string, unknown
   return { orders, meta };
 };
 
+const getMySingleOrderFromDB = async (user: TTokenUser, orderId: string) => {
+  const order = await OrderModel.findOne({
+    user: user._id,
+    _id: orderId,
+  }).populate("product quote");
+  if (!order) {
+    throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
+  }
+  return order;
+};
+
 export const OrderServices = {
   createOrderIntoDb,
   getAllOrdersFromDb,
@@ -225,4 +236,5 @@ export const OrderServices = {
   deleteUnpaidOrder,
   createOrderForQuote,
   getMyOrdersFromDb,
+  getMySingleOrderFromDB,
 };

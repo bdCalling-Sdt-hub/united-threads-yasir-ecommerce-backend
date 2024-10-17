@@ -13,6 +13,7 @@ import fs from "fs";
 import moment from "moment";
 import { TOrder } from "../order/order.interface";
 import { QuoteProductModel } from "../quote-product/quote-product.model";
+import ProductModel from "../product/product.model";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -103,7 +104,7 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
         },
       ).session(session);
     } else if (orderDetails?.product) {
-      await QuoteProductModel.updateOne(
+      await ProductModel.updateOne(
         {
           _id: orderDetails?.product,
         },

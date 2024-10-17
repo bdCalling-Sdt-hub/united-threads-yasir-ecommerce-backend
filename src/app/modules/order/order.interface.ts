@@ -11,10 +11,11 @@ export type TOrder = {
   orderType: TOrderType;
   paymentStatus: TPaymentStatus;
   duoAmount?: number;
-  country?: string;
-  state?: string;
-  city?: string;
+  country: string;
+  state: string;
+  city: string;
   houseNo?: string;
+  area?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

@@ -15,7 +15,7 @@ const productSchema = z.object({
   description: z.string().min(1, { message: "Product description is required" }),
   shortDescription: z.string().optional(),
   category: z.string({ required_error: "Category is required" }),
-  quantity: z.number().min(0, { message: "Quantity must be 0 or greater" }),
+  stock: z.number({ required_error: "Stock is required" }),
   price: z.number().positive({ message: "Price must be a positive number" }),
   size: z.array(productSizeEnum),
 });
@@ -28,7 +28,7 @@ const productUpdateSchema = z.object({
   description: z.string().min(1).optional(),
   shortDescription: z.string().optional(),
   category: z.string().optional(),
-  quantity: z.number().min(0, { message: "Quantity must be 0 or greater" }).optional(),
+  stock: z.number().optional(),
   price: z.number().positive({ message: "Price must be a positive number" }).optional(),
   size: z.array(productSizeEnum).optional(),
 });

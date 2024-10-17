@@ -13,6 +13,11 @@ export type TQuote = {
   quantity: number;
   price: number;
   size: TProductSize;
+  country: string;
+  state: string;
+  city: string;
+  houseNo?: string;
+  area?: string;
   materialPreferences: string;
   isDeleted?: boolean;
   quoteStatus?: TQuoteStatus;

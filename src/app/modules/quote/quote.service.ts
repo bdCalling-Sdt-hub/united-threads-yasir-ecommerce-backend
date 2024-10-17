@@ -157,6 +157,11 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       user: new Schema.Types.ObjectId(user._id),
       paymentStatus: "UNPAID",
       quantity: quoteData.quantity,
+      country: quoteData.country,
+      state: quoteData.state,
+      city: quoteData.city,
+      houseNo: quoteData.houseNo,
+      area: quoteData.area,
     };
 
     //const order = await OrderServices.createOrderForQuote(user, orderPayload);

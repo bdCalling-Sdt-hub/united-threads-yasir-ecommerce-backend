@@ -12,6 +12,11 @@ export type TUser = {
   role: TUserRole;
   isActive: boolean;
   isDelete: boolean;
+  country?: string;
+  state?: string;
+  city?: string;
+  houseNo?: string;
+  area?: string;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -188,6 +188,34 @@ const deleteUnpaidOrder = async () => {
   }
 };
 
+const getMyOrdersFromDb = async (user: TTokenUser, query: Record<string, unknown>) => {
+  let createdAt: string | null = null;
+
+  // Extract the createdAt date and remove it from the query object
+  if (query.createdAt) {
+    createdAt = query.createdAt as string;
+    delete query.createdAt; // Remove createdAt from the main query
+  }
+
+  const orderQuery = new QueryBuilder(
+    OrderModel.find({
+      user: user._id,
+    }),
+    query,
+  )
+    .search(["status", "orderType", "paymentStatus", "city", "state"])
+    .filter()
+    .createdAtRangeFilter("createdAt", createdAt)
+    .sort()
+    .paginate()
+    .fields();
+
+  const orders = await orderQuery.modelQuery.populate("user product quote");
+  const meta = await orderQuery.countTotal();
+
+  return { orders, meta };
+};
+
 export const OrderServices = {
   createOrderIntoDb,
   getAllOrdersFromDb,
@@ -196,4 +224,5 @@ export const OrderServices = {
   deleteOrderIntoDb,
   deleteUnpaidOrder,
   createOrderForQuote,
+  getMyOrdersFromDb,
 };

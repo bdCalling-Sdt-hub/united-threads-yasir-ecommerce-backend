@@ -10,7 +10,7 @@ export type TProduct = {
   images: TImage[];
   primaryImage: string;
   category: Schema.Types.ObjectId;
-  quantity: number;
+  stock: number;
   price: number;
   size: TProductSize[];
   colorsPreferences: string[];

@@ -22,7 +22,7 @@ const ProductSchema = new Schema<TProduct>(
     images: [ProductImageSchema],
     primaryImage: { type: String, required: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
-    quantity: { type: Number, required: true, default: 0 },
+    stock: { type: Number, required: true, default: 0 },
     price: { type: Number, required: true },
     colorsPreferences: [{ type: String, required: true }],
     size: [

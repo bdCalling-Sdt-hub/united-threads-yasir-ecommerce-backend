@@ -17,10 +17,10 @@ router.post(
 
 router.patch(
   "/update-review/:id",
-  auth("ADMIN"),
+  auth("CUSTOMER"),
   validateRequest(ReviewValidation.updateReviewSchema),
   ReviewController.updateReview,
 );
-router.delete("/delete-review/:id", auth("ADMIN"), ReviewController.deleteReview);
+router.delete("/delete-review/:id", auth("CUSTOMER"), ReviewController.deleteReview);
 
 export const ReviewRoutes = router;

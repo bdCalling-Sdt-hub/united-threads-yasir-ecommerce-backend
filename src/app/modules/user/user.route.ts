@@ -33,7 +33,9 @@ router.patch(
           req.body = UserValidations.updateUserValidation.parse({ profilePicture });
         }
       } else {
-        req.body = UserValidations.updateUserValidation.parse(JSON.parse(req?.body?.data));
+        if (req.body?.data) {
+          req.body = UserValidations.updateUserValidation.parse(JSON.parse(req?.body?.data));
+        }
       }
       next();
     } catch (error) {

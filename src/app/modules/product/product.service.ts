@@ -85,11 +85,22 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
 
 // Get Product By ID
 const getProductByIdFromDb = async (id: string) => {
-  const product = await ProductModel.findById(id).populate("user");
+  const product = await ProductModel.findById(id).populate("user").lean();
   if (!product || product.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }
-  return product;
+
+  const reviews = await ReviewModel.find({ product: product._id });
+  const averageRating =
+    reviews.map((review) => review.rating).reduce((a, b) => a + b, 0) / reviews.length || 0;
+
+  const result = {
+    ...product,
+    totalReviews: reviews.length,
+    averageRating,
+  };
+
+  return result;
 };
 
 // Update Product in Database

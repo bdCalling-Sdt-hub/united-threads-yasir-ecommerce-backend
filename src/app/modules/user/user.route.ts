@@ -47,5 +47,5 @@ router.patch(
 
 router.patch("/update-user/:id", auth("ADMIN", "CSR"), UserControllers.updateUser);
 router.delete("/delete-user/:id", auth("ADMIN"), UserControllers.deleteUser);
-
+router.delete("/delete-my-profile", auth("CUSTOMER"), UserControllers.deleteMyProfile);
 export const UserRoutes = router;

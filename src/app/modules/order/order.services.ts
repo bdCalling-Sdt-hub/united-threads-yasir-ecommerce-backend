@@ -9,6 +9,8 @@ import UserModel from "../user/user.model";
 import { TOrder } from "./order.interface";
 import OrderModel from "./order.model";
 import { PAYMENT_STATUS } from "./order.constant";
+import QuoteCategoryModel from "../quote-category/quote-category.model";
+import CategoryModel from "../category/category.model";
 
 // Create Order in Database
 const createOrderIntoDb = async (user: TTokenUser, payload: any) => {
@@ -210,10 +212,45 @@ const getMyOrdersFromDb = async (user: TTokenUser, query: Record<string, unknown
     .paginate()
     .fields();
 
-  const orders = await orderQuery.modelQuery.populate("user product quote");
+  const orders = await orderQuery.modelQuery.populate("user product quote").lean();
   const meta = await orderQuery.countTotal();
 
-  return { orders, meta };
+  const result = await Promise.all(
+    orders.map(async (order: any) => {
+      let orderWithCategory: Record<string, unknown> = {};
+
+      if (order?.quote?.category as string) {
+        const categoryData = await QuoteCategoryModel.findOne({
+          _id: order.product.category,
+        }).lean();
+
+        const product = {
+          ...order.product,
+          category: categoryData,
+        };
+        orderWithCategory = {
+          ...order,
+          product,
+        };
+      } else if (order?.product?.category as string) {
+        const categoryData = await CategoryModel.findOne({ _id: order.product.category }).lean();
+
+        const product = {
+          ...order.product,
+          category: categoryData,
+        };
+
+        orderWithCategory = {
+          ...order,
+          product,
+        };
+      }
+
+      return orderWithCategory;
+    }),
+  );
+
+  return { orders: result, meta };
 };
 
 const getMySingleOrderFromDB = async (user: TTokenUser, orderId: string) => {

@@ -10,6 +10,8 @@ export type TOrder = {
   status: TOrderStatus;
   orderType: TOrderType;
   paymentStatus: TPaymentStatus;
+  size: string;
+  color: string;
   duoAmount?: number;
   country: string;
   state: string;

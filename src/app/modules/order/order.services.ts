@@ -257,7 +257,7 @@ const getMySingleOrderFromDB = async (user: TTokenUser, orderId: string) => {
   const order = await OrderModel.findOne({
     user: user._id,
     _id: orderId,
-  }).populate("product quote");
+  }).populate("user product quote");
   if (!order) {
     throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
   }

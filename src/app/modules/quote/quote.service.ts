@@ -162,6 +162,8 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       city: quoteData.city,
       houseNo: quoteData.houseNo,
       area: quoteData.area,
+      size: quoteData.size,
+      color: quoteData.hexColor,
     };
 
     //const order = await OrderServices.createOrderForQuote(user, orderPayload);

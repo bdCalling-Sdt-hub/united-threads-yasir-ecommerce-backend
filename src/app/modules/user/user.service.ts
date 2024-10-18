@@ -5,6 +5,10 @@ import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
 import { TUser } from "./user.interface";
 import UserModel from "./user.model";
+import path from "path";
+import fs from "fs";
+import { sendMail } from "../../utils/sendMail";
+import config from "../../config";
 
 const getAllUsersFromDb = async (query: Record<string, unknown>) => {
   const userQuery = new QueryBuilder(UserModel.find({ isDelete: false }), query)
@@ -117,6 +121,26 @@ const deleteUserFromDb = async (userId: string) => {
   return null;
 };
 
+const sendMailIntoAdmin = async (data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  subject: string;
+  description: string;
+}) => {
+  const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
+  const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
+  const html = forgetOtpEmail
+    .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
+    .replace(/{{description}}/g, data.description);
+  sendMail({
+    to: data.email,
+    from: config.email.user,
+    html,
+    subject: `From United Threads | ${data.subject}`,
+  });
+};
+
 export const UserServices = {
   getAllUsersFromDb,
   getSingleUserFromDb,
@@ -125,4 +149,5 @@ export const UserServices = {
   getUserProfileFromDb,
   updateUserIntoDb,
   deleteUserFromDb,
+  sendMailIntoAdmin,
 };

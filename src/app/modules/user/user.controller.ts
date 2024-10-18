@@ -79,6 +79,16 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+const sendMailIntoAdmin = catchAsync(async (req, res) => {
+  const result = await UserServices.sendMailIntoAdmin(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Mail sent successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getAllUser,
   getSingleUser,
@@ -87,4 +97,5 @@ export const UserControllers = {
   getProfile,
   updateProfile,
   deleteUser,
+  sendMailIntoAdmin,
 };

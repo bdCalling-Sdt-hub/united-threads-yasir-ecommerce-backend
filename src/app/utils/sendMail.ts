@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import nodemailer from "nodemailer";
 import config from "../config";
 
@@ -5,9 +6,10 @@ type TEmail = {
   to: string;
   html: string;
   subject: string;
+  from?: string;
 };
 
-export const sendMail = async ({ to, html, subject }: TEmail) => {
+export const sendMail = async ({ to, html, subject, from }: TEmail) => {
   const transporter = nodemailer.createTransport({
     //@ts-ignore
     host: "smtp.gmail.com",
@@ -21,7 +23,7 @@ export const sendMail = async ({ to, html, subject }: TEmail) => {
 
   // send mail with defined transport object
   await transporter.sendMail({
-    from: config.email.user, // sender address
+    from: from || config.email.user, // sender address
     to, // list of receivers
     subject,
     html,

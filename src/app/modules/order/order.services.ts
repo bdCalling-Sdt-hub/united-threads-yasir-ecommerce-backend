@@ -13,7 +13,7 @@ import QuoteCategoryModel from "../quote-category/quote-category.model";
 import CategoryModel from "../category/category.model";
 
 // Create Order in Database
-const createOrderIntoDb = async (user: TTokenUser, payload: any) => {
+const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
   const userData = await UserModel.findById(user._id).lean();
 
   if (!userData) {

@@ -9,7 +9,7 @@ export type TQuote = {
   backSide: string;
   pantoneColor: string;
   category: Schema.Types.ObjectId;
-  hexColor: Schema.Types.ObjectId;
+  hexColor: string;
   quantity: number;
   price: number;
   size: TProductSize;

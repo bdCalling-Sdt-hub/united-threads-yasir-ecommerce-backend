@@ -19,7 +19,7 @@ const getAllQuoteProductsFromDb = async (query: Record<string, unknown>) => {
   });
 
   let productQuery = new QueryBuilder(
-    QuoteProductModel.find({ isDeleted: false }),
+    QuoteProductModel.find({ isDeleted: false }).populate("category"),
     correctQuery,
   ).search(["name", "description", "shortDescription"]);
 
@@ -56,7 +56,7 @@ const getAllQuoteProductsFromDb = async (query: Record<string, unknown>) => {
 
 // Get Product By ID
 const getQuoteProductByIdFromDb = async (id: string) => {
-  const product = await QuoteProductModel.findById(id);
+  const product = await QuoteProductModel.findById(id).populate("category").lean();
   if (!product || product.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }

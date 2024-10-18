@@ -32,7 +32,7 @@ const getAllQuotesFromDb = async (query: Record<string, unknown>) => {
     delete query.createdAt; // Remove createdAt from the main query
   }
 
-  const quoteQuery = new QueryBuilder(QuoteModel.find({ isDeleted: false }).populate("user"), query)
+  const quoteQuery = new QueryBuilder(QuoteModel.find({ isDeleted: false }).populate("user category"), query)
     .search(["name", "description", "materialPreferences"])
     .filter()
     .sort()

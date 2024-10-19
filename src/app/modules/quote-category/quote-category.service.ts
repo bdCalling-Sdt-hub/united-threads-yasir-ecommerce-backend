@@ -41,7 +41,6 @@ const getAllCategoryFromDb = async (query: Record<string, unknown>) => {
     .search(["name"])
     .filter()
     .fields();
-
   // Fetch the categories
   const categories = await categoryQuery.modelQuery.lean();
 

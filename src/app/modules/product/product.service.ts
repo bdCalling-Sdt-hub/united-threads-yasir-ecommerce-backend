@@ -40,9 +40,10 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
   });
 
   // Initialize the query builder
-  let productQuery = new QueryBuilder(ProductModel.find({ isDeleted: false }), correctQuery).search(
-    ["name", "description", "shortDescription"],
-  );
+  let productQuery = new QueryBuilder(
+    ProductModel.find({ isDeleted: false }).populate("category"),
+    correctQuery,
+  ).search(["name", "description", "shortDescription"]);
 
   // Handle filtering by size if it's provided in the query
   if (correctQuery.size) {

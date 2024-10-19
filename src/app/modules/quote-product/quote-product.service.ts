@@ -65,7 +65,6 @@ const getQuoteProductByIdFromDb = async (id: string) => {
 
 // Update Product in Database
 const updateQuoteProductIntoDb = async (productId: string, payload: Partial<TQuoteProduct>) => {
-  console.log({ payload });
 
   const updatedProduct = await QuoteProductModel.findOneAndUpdate(
     { _id: productId, isDeleted: false },

@@ -50,6 +50,7 @@ const getAllCategoryFromDb = async (query: Record<string, unknown>) => {
     categories.map(async (category) => {
       const productCount = await QuoteProductModel.find({
         category: category._id,
+        isDeleted: false,
       }).countDocuments();
       return { ...category, productCount };
     }),

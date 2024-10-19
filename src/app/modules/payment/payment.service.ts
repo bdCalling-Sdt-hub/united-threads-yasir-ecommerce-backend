@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import fs from "fs";
 import httpStatus from "http-status";
+import moment from "moment";
 import mongoose from "mongoose";
+import path from "path";
 import AppError from "../../errors/AppError";
+import { sendMail } from "../../utils/sendMail";
 import { PAYMENT_STATUS } from "../order/order.constant";
+import { TOrder } from "../order/order.interface";
 import OrderModel from "../order/order.model";
+import ProductModel from "../product/product.model";
 import { StripeServices } from "../stripe/stripe.service";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
-import { sendMail } from "../../utils/sendMail";
-import path from "path";
-import fs from "fs";
-import moment from "moment";
-import { TOrder } from "../order/order.interface";
-import { QuoteProductModel } from "../quote-product/quote-product.model";
-import ProductModel from "../product/product.model";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -95,14 +94,14 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
     ).session(session);
 
     if (orderDetails?.quote) {
-      await QuoteProductModel.updateOne(
-        {
-          _id: orderDetails?.quote,
-        },
-        {
-          stock: orderDetails?.quote?.stock - 1,
-        },
-      ).session(session);
+      //await QuoteProductModel.updateOne(
+      //  {
+      //    _id: orderDetails?.quote,
+      //  },
+      //  {
+      //    stock: orderDetails?.quote?.stock - 1,
+      //  },
+      //).session(session);
     } else if (orderDetails?.product) {
       await ProductModel.updateOne(
         {

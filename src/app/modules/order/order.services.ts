@@ -123,7 +123,7 @@ const getAllOrdersFromDb = async (query: Record<string, unknown>) => {
 
 // Get Order By ID
 const getOrderByIdFromDb = async (id: string) => {
-  const order = await OrderModel.findById(id).populate("user product");
+  const order = await OrderModel.findById(id).populate("user product quote").lean();
   if (!order) {
     throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
   }

@@ -60,12 +60,13 @@ const deleteOrder = catchAsync(async (req, res) => {
 
 const getMyOrders = catchAsync(async (req, res) => {
   const user = (req as CustomRequest).user;
-  const result = await OrderServices.getMyOrdersFromDb(user, req.query);
+  const { meta, orders } = await OrderServices.getMyOrdersFromDb(user, req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Orders fetched successfully",
-    data: result,
+    meta,
+    data: orders,
   });
 });
 

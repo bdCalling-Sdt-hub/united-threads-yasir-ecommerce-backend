@@ -6,6 +6,8 @@ import AppError from "../../errors/AppError";
 import CategoryModel from "./category.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import ProductModel from "../product/product.model";
+import QuoteCategoryModel from "../quote-category/quote-category.model";
+import { shuffle } from "../../utils/makeArrayshuffle";
 
 const createCategoryIntoDb = async (user: TTokenUser, payload: TCategory) => {
   const userData = await UserModel.findById(user._id).select("+password").lean();
@@ -82,9 +84,29 @@ const deleteCategoryIntoDb = async (id: string) => {
   return result;
 };
 
+const getAllTypeCategoriesFromDb = async () => {
+  const categories = await CategoryModel.find({ isDeleted: false }).lean();
+  const quoteCategories = await QuoteCategoryModel.find({ isDeleted: false }).lean();
+
+  const allCategories = [
+    ...categories.map((category) => ({
+      ...category,
+      type: "SHOP",
+    })),
+    ...quoteCategories.map((quoteCategory) => ({
+      ...quoteCategory,
+      type: "QUOTE",
+    })),
+  ];
+
+  const shuffledCategories = shuffle(allCategories);
+  return shuffledCategories;
+};
+
 export const CategoryServices = {
   createCategoryIntoDb,
   getAllCategoryFromDb,
   updateCategoryIntoDb,
   deleteCategoryIntoDb,
+  getAllTypeCategoriesFromDb,
 };

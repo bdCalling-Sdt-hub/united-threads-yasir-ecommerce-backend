@@ -9,6 +9,7 @@ const upload = multer({ storage });
 const router = Router();
 
 router.get("/categories", CategoryController.getAllCategory);
+router.get("/all-categories", CategoryController.getAllTypeCategories);
 router.post(
   "/create-category",
   auth("ADMIN"),

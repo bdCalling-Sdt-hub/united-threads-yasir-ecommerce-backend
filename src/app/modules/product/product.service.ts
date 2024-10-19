@@ -86,7 +86,7 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
 
 // Get Product By ID
 const getProductByIdFromDb = async (id: string) => {
-  const product = await ProductModel.findById(id).populate("user").lean();
+  const product = await ProductModel.findById(id).populate("user category").lean();
   if (!product || product.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }

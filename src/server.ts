@@ -10,6 +10,7 @@ import initializeSocketIO from "./socket";
 let server: Server;
 export let io: any;
 async function main() {
+  console.log(config.database_url);
   try {
     await mongoose.connect(config.database_url as string);
     seedAdminAndCSR();
@@ -34,7 +35,8 @@ async function main() {
 
 main();
 
-process.on("unhandledRejection", () => {
+process.on("unhandledRejection", (error) => {
+  console.log(error);
   console.log("unhandledRejection detected server shutting down 😈");
 
   if (server) {

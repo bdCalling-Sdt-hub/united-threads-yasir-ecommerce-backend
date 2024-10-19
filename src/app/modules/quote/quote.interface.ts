@@ -18,6 +18,7 @@ export type TQuote = {
   city: string;
   houseNo?: string;
   area?: string;
+  comment?: string;
   materialPreferences: string;
   isDeleted?: boolean;
   quoteStatus?: TQuoteStatus;

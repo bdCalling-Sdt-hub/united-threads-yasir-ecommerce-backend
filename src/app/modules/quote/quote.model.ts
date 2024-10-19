@@ -18,6 +18,12 @@ const QuoteSchema = new Schema<TQuote>(
     pantoneColor: { type: String, required: true },
     hexColor: { type: String, required: true },
     materialPreferences: { type: String, required: true },
+    area: { type: String },
+    country: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    houseNo: { type: String },
+    comment: { type: String },
     quoteStatus: {
       type: String,
       enum: ["pending", "processing", "delivered", "canceled"],

@@ -60,12 +60,13 @@ const deleteQuote = catchAsync(async (req, res) => {
 
 const getMyQuotes = catchAsync(async (req, res) => {
   const user = (req as CustomRequest).user;
-  const result = await QuoteServices.getMyQuotesFromDb(user, req.query);
+  const { meta, quotes } = await QuoteServices.getMyQuotesFromDb(user, req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "My quotes fetched successfully",
-    data: result,
+    meta,
+    data: quotes,
   });
 });
 

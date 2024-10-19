@@ -30,7 +30,8 @@ const createChatIntoDb = async (user: TTokenUser, receiverId: string) => {
 const getMyChatListFromDb = async (userId: string) => {
   const userData = await UserModel.findOne({ _id: userId });
   if (!userData) {
-    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+    //throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+    return [];
   }
 
   // Retrieve the chat list where the user is a participant

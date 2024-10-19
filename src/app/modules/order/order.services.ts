@@ -221,13 +221,14 @@ const getMyOrdersFromDb = async (user: TTokenUser, query: Record<string, unknown
 
       if (order?.quote?.category as string) {
         const categoryData = await QuoteCategoryModel.findOne({
-          _id: order.product.category,
+          _id: order.quote.category,
         }).lean();
 
         const product = {
           ...order.product,
           category: categoryData,
         };
+
         orderWithCategory = {
           ...order,
           product,

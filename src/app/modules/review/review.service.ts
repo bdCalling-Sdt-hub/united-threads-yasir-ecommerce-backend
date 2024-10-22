@@ -6,6 +6,7 @@ import AppError from "../../errors/AppError";
 import ReviewModel from "./review.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import ProductModel from "../product/product.model";
+import mongoose from "mongoose";
 
 // Create Review in Database
 const createReviewIntoDb = async (user: TTokenUser, payload: TReview) => {
@@ -19,9 +20,45 @@ const createReviewIntoDb = async (user: TTokenUser, payload: TReview) => {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }
 
-  // Create a new review in the database
-  const result = await ReviewModel.create({ ...payload, user: userData._id });
-  return result;
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    await ReviewModel.create([{ ...payload, user: userData._id }], {
+      session,
+    });
+
+    const allReviews = await ReviewModel.find({
+      product: productData._id,
+    });
+
+    const avgRating =
+      allReviews.map((review) => review.rating).reduce((a, b) => a + b, 0) / allReviews.length || 0;
+
+    const updateProduct = await ProductModel.findOneAndUpdate(
+      {
+        _id: payload.product,
+      },
+      {
+        rating: avgRating,
+        totalReviews: allReviews.length,
+      },
+      {
+        new: true,
+        session,
+      },
+    );
+    if (!updateProduct) {
+      throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
+    }
+
+    // Create a new review in the database
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(httpStatus.BAD_REQUEST, "Failed to Create Review");
+  }
 };
 
 // Get All Reviews from Database

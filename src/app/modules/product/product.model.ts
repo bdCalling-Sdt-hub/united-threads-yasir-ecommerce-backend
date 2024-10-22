@@ -25,6 +25,9 @@ const ProductSchema = new Schema<TProduct>(
     stock: { type: Number, required: true, default: 0 },
     price: { type: Number, required: true },
     colorsPreferences: [{ type: String, required: true }],
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    salesCount: { type: Number, default: 0 },
     size: [
       {
         type: String,

@@ -5,7 +5,6 @@ import { TProduct } from "./product.interface";
 import AppError from "../../errors/AppError";
 import ProductModel from "./product.model";
 import QueryBuilder from "../../builder/QueryBuilder";
-import OrderModel from "../order/order.model";
 import ReviewModel from "../review/review.model";
 
 // Create Product in Database
@@ -61,32 +60,32 @@ const getAllProductsFromDb = async (query: Record<string, unknown>) => {
 
   const products = await productQuery.modelQuery;
 
-  const productsWithSalesCount = await Promise.all(
-    products.map(async (product) => {
-      const orderCount =
-        (await OrderModel.find({
-          product: product._id,
-          paymentStatus: "PAID",
-        }).countDocuments()) || 0;
-      const reviews = await ReviewModel.find({ product: product._id });
-      const averageRating =
-        reviews.map((review) => review.rating).reduce((a, b) => a + b, 0) / reviews.length || 0;
-      return {
-        ...product.toObject(),
-        orderCount,
-        averageRating,
-        totalReviews: reviews.length,
-      }; // toObject() converts Mongoose document to plain object
-    }),
-  );
+  //const productsWithSalesCount = await Promise.all(
+  //  products.map(async (product) => {
+  //    const orderCount =
+  //      (await OrderModel.find({
+  //        product: product._id,
+  //        paymentStatus: "PAID",
+  //      }).countDocuments()) || 0;
+  //    const reviews = await ReviewModel.find({ product: product._id });
+  //    const averageRating =
+  //      reviews.map((review) => review.rating).reduce((a, b) => a + b, 0) / reviews.length || 0;
+  //    return {
+  //      ...product.toObject(),
+  //      orderCount,
+  //      averageRating,
+  //      totalReviews: reviews.length,
+  //    }; // toObject() converts Mongoose document to plain object
+  //  }),
+  //);
 
   const meta = await productQuery.countTotal();
-  return { products: productsWithSalesCount, meta };
+  return { products: products, meta };
 };
 
 // Get Product By ID
 const getProductByIdFromDb = async (id: string) => {
-  const product = await ProductModel.findById(id).populate("user category").lean();
+  const product = await ProductModel.findById(id).populate("user").lean();
   if (!product || product.isDeleted) {
     throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
   }

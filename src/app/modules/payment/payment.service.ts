@@ -109,6 +109,7 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
         },
         {
           stock: orderDetails?.product?.stock - 1,
+          salesCount: orderDetails?.product?.salesCount + 1,
         },
       ).session(session);
     }

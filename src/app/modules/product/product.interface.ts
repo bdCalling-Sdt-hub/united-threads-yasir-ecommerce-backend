@@ -17,6 +17,9 @@ export type TProduct = {
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  rating?: number;
+  salesCount?: number;
+  reviewCount?: number;
 };
 
 export type TProductSize = "XS" | "S" | "M" | "L" | "XL" | "XXL" | "XXXL";

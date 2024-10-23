@@ -12,7 +12,8 @@ const getAllLibrariesFromDb = async (query: Record<string, unknown>) => {
     .search(["name "])
     .filter()
     .fields()
-    .paginate();
+    .paginate()
+    .sort();
 
   const meta = await result.countTotal();
   const libraries = await result.modelQuery;

@@ -27,10 +27,10 @@ router.post(
         if (req.body?.data) {
           req.body = LibraryValidations.createLibraryValidation.parse({
             ...JSON.parse(req?.body?.data),
-            file,
+            image: file,
           });
         } else {
-          req.body = LibraryValidations.createLibraryValidation.parse({ file });
+          req.body = LibraryValidations.createLibraryValidation.parse({ image: file });
         }
       } else {
         req.body = LibraryValidations.createLibraryValidation.parse(JSON.parse(req?.body?.data));
@@ -58,10 +58,10 @@ router.post(
         if (req.body?.data) {
           req.body = LibraryValidations.createLibraryValidation.parse({
             ...JSON.parse(req?.body?.data),
-            file,
+            image: file,
           });
         } else {
-          req.body = LibraryValidations.createLibraryValidation.parse({ file });
+          req.body = LibraryValidations.createLibraryValidation.parse({ image: file });
         }
       } else {
         req.body = LibraryValidations.createLibraryValidation.parse(JSON.parse(req?.body?.data));

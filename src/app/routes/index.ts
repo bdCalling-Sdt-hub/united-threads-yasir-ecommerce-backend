@@ -14,6 +14,7 @@ import { QuoteCategoryRoutes } from "../modules/quote-category/quote-category.ro
 import { ImageRoutes } from "../modules/images/images.route";
 import { MessageRouter as MessageRoutes } from "../modules/message/messageRoute";
 import { AiRoutes } from "../modules/ai/ai.route";
+import { LibraryRoutes } from "../modules/library/library.route";
 
 const router = Router();
 
@@ -73,6 +74,10 @@ const moduleRoutes = [
   {
     path: "/message",
     route: MessageRoutes,
+  },
+  {
+    path: "/library",
+    route: LibraryRoutes,
   },
   {
     path: "/ai",

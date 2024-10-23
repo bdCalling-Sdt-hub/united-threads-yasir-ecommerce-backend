@@ -76,3 +76,5 @@ router.post(
 );
 
 router.delete("/delete-library/:id", auth("ADMIN"), LibraryController.deleteLibrary);
+
+export const LibraryRoutes = router;

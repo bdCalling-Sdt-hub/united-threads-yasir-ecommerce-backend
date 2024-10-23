@@ -13,6 +13,7 @@ import { QuoteProductRoutes } from "../modules/quote-product/quote-product.route
 import { QuoteCategoryRoutes } from "../modules/quote-category/quote-category.route";
 import { ImageRoutes } from "../modules/images/images.route";
 import { MessageRouter as MessageRoutes } from "../modules/message/messageRoute";
+import { AiRoutes } from "../modules/ai/ai.route";
 
 const router = Router();
 
@@ -72,6 +73,10 @@ const moduleRoutes = [
   {
     path: "/message",
     route: MessageRoutes,
+  },
+  {
+    path: "/ai",
+    route: AiRoutes,
   },
 ];
 

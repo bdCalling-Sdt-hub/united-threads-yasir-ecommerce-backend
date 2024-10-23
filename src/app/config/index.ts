@@ -37,4 +37,10 @@ export default {
     paymentCancelUrl: process.env.PAYMENT_CANCEL_URL,
     webHookUrl: process.env.WEB_HOOK_URL,
   },
+
+  ai: {
+    apiKey: process.env.AI_API_KEY,
+    projectId: process.env.AI_ORGANIZATION_ID,
+    organizationId: process.env.AI_ORGANIZATION_ID,
+  },
 };

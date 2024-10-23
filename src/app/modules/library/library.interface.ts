@@ -3,4 +3,8 @@ export type TLibrary = {
   image: string;
   description?: string;
   isDeleted?: boolean;
+  status: TLibraryStatus;
+  tags?: string[] | string;
 };
+
+export type TLibraryStatus = "PUBLIC" | "PRIVATE";

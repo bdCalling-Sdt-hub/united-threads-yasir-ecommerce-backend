@@ -14,12 +14,13 @@ const createLibrary = catchAsync(async (req, res) => {
 });
 
 const getAllLibrary = catchAsync(async (req, res) => {
-  const result = await LibraryServices.getAllLibrariesFromDb(req.query);
+  const { libraries, meta } = await LibraryServices.getAllLibrariesFromDb(req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Library fetched successfully",
-    data: result,
+    meta,
+    data: libraries,
   });
 });
 

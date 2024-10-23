@@ -32,6 +32,7 @@ const initializeSocketIO = (server: HttpServer) => {
     try {
       // GET USER ACCESS TOKEN FROM HEADERS
       const accessToken = socket.handshake.auth?.token || socket.handshake.headers?.token;
+
       if (!accessToken) {
         return sendSocketEmit(socket, "error", {
           success: false,
@@ -62,11 +63,11 @@ const initializeSocketIO = (server: HttpServer) => {
 
       onlineUsers.add(user._id);
 
-      //sendSocketEmit(socket, "online-users", {
-      //  success: true,
-      //  message: "New user connected",
-      //  data: Array.from(onlineUsers),
-      //});
+      sendSocketEmit(socket, "online-users", {
+        success: true,
+        message: "New user connected",
+        data: Array.from(onlineUsers),
+      });
 
       ChatServices.getMyChatListFromDb(user._id).then((result) => {
         io.emit("chat-list::" + user._id, { data: result });

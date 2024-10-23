@@ -89,6 +89,16 @@ const sendMailIntoAdmin = catchAsync(async (req, res) => {
   });
 });
 
+const getCsrId = catchAsync(async (req, res) => {
+  const result = await UserServices.getCsrIdFromDb();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Csr Id fetched successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getAllUser,
   getSingleUser,
@@ -98,4 +108,5 @@ export const UserControllers = {
   updateProfile,
   deleteUser,
   sendMailIntoAdmin,
+  getCsrId,
 };

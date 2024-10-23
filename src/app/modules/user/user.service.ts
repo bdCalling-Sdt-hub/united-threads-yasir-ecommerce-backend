@@ -141,6 +141,12 @@ const sendMailIntoAdmin = async (data: {
   });
 };
 
+const getCsrIdFromDb = async () => {
+  const result = await UserModel.findOne({ role: "CSR" }).select("_id");
+
+  return result;
+};
+
 export const UserServices = {
   getAllUsersFromDb,
   getSingleUserFromDb,
@@ -150,4 +156,5 @@ export const UserServices = {
   updateUserIntoDb,
   deleteUserFromDb,
   sendMailIntoAdmin,
+  getCsrIdFromDb,
 };

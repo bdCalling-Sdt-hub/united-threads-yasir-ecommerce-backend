@@ -31,15 +31,15 @@ export const generateImage = async (
       prompt,
       n,
       size,
+      model: "dall-e-2",
+      response_format: "b64_json",
     });
 
     if (!response || !response.data || !Array.isArray(response.data)) {
       throw new Error("Invalid response from OpenAI API");
     }
 
-    return response.data
-      .filter((image: { url?: string }) => image.url !== undefined)
-      .map((image: { url?: string }) => image.url as string);
+    return response.data.map((image) => `data:image/png;base64,${image.b64_json}`);
   } catch (error: any) {
     console.log("Error generating image:", error);
     throw new AppError(httpStatus.BAD_REQUEST, "Failed to generate image");

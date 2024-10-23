@@ -150,8 +150,6 @@ const getMonthlyProductOrderQuantities = async (query: Record<string, unknown>) 
   // Use the provided year or default to the current year
   const targetYear = Number(query?.year) || new Date().getFullYear();
 
-  
-
   const monthlyOrderQuantities = await OrderModel.aggregate([
     {
       // Match only orders with paymentStatus as 'PAID' and within the target year
@@ -222,9 +220,113 @@ const getUserAndRevenueNumber = async () => {
   };
 };
 
+const getYearlyRevenueWithGrowth = async (query: Record<string, unknown>) => {
+  // Use the provided year or default to the current year
+  const targetYear = Number(query?.year) || new Date().getFullYear();
+  const previousYear = targetYear - 1;
+
+  // Helper function to get total revenue for a given year
+  const getTotalRevenueForYear = async (year: number) => {
+    const result = await PaymentModel.aggregate([
+      {
+        // Match payments in the specified year and ensure the status is PAID
+        $match: {
+          createdAt: {
+            $gte: new Date(`${year}-01-01`), // Start of the specified year
+            $lt: new Date(`${year + 1}-01-01`), // Start of the next year
+          },
+          status: "PAID", // Ensure the status is PAID (adjust according to your DB values)
+        },
+      },
+      {
+        // Group and sum the revenue for the entire year
+        $group: {
+          _id: null, // No grouping by specific field, we're summing for the whole year
+          totalRevenue: { $sum: "$amount" }, // Sum all payment amounts
+        },
+      },
+    ]);
+
+    // Return the total revenue or 0 if no payments were found
+    return result.length > 0 ? result[0].totalRevenue / 100 : 0; // Convert from cents if necessary
+  };
+
+  // Get revenue for the target year and the previous year
+  const targetYearRevenue = await getTotalRevenueForYear(targetYear);
+  const previousYearRevenue = await getTotalRevenueForYear(previousYear);
+
+  // Calculate growth percentage
+  let growthPercentage = 0;
+  if (previousYearRevenue > 0) {
+    growthPercentage = ((targetYearRevenue - previousYearRevenue) / previousYearRevenue) * 100;
+  } else if (targetYearRevenue > 0) {
+    growthPercentage = 100;
+  }
+
+  // Return the revenue data and growth percentage
+  return {
+    year: targetYear,
+    totalRevenue: targetYearRevenue,
+    growthPercentage: parseFloat(growthPercentage.toFixed(2)), // Format to 2 decimal places
+  };
+};
+
+const getYearlyProductSellingGrowth = async (query: Record<string, unknown>) => {
+  // Use the provided year or default to the current year
+  const targetYear = Number(query?.year) || new Date().getFullYear();
+  const previousYear = targetYear - 1;
+
+  // Helper function to get total quantity of products sold for a given year
+  const getTotalQuantityForYear = async (year: number) => {
+    const result = await OrderModel.aggregate([
+      {
+        // Match orders in the specified year and ensure the payment status is PAID
+        $match: {
+          createdAt: {
+            $gte: new Date(`${year}-01-01`), // Start of the specified year
+            $lt: new Date(`${year + 1}-01-01`), // Start of the next year
+          },
+          paymentStatus: "PAID", // Only consider orders with successful payments
+        },
+      },
+      {
+        // Group and sum the quantities for the entire year
+        $group: {
+          _id: null, // No grouping by specific field, summing for the whole year
+          totalQuantity: { $sum: "$quantity" }, // Sum all product quantities
+        },
+      },
+    ]);
+
+    // Return the total quantity or 0 if no orders were found
+    return result.length > 0 ? result[0].totalQuantity : 0;
+  };
+
+  // Get product quantity for the target year and the previous year
+  const targetYearQuantity = await getTotalQuantityForYear(targetYear);
+  const previousYearQuantity = await getTotalQuantityForYear(previousYear);
+
+  // Calculate growth percentage
+  let growthPercentage = 0;
+  if (previousYearQuantity > 0) {
+    growthPercentage = ((targetYearQuantity - previousYearQuantity) / previousYearQuantity) * 100;
+  } else if (targetYearQuantity > 0) {
+    growthPercentage = 100; // If there was no quantity sold in the previous year but there is in the current year
+  }
+
+  // Return the product quantity data and growth percentage
+  return {
+    year: targetYear,
+    totalQuantity: targetYearQuantity,
+    growthPercentage: parseFloat(growthPercentage.toFixed(2)), // Format to 2 decimal places
+  };
+};
+
 export const MetaServices = {
   getMonthlyRevenue,
   getUsersCount,
   getMonthlyProductOrderQuantities,
   getUserAndRevenueNumber,
+  getYearlyRevenueWithGrowth,
+  getYearlyProductSellingGrowth,
 };

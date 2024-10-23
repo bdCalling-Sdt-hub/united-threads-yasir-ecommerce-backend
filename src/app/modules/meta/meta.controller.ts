@@ -43,9 +43,31 @@ const getUserAndRevenueNumber = catchAsync(async (req, res) => {
   });
 });
 
+const getYearlyRevenueWithGrowth = catchAsync(async (req, res) => {
+  const result = await MetaServices.getYearlyRevenueWithGrowth(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Yearly revenue with growth fetched successfully",
+    data: result,
+  });
+});
+
+const getYearlyProductSellingGrowth = catchAsync(async (req, res) => {
+  const result = await MetaServices.getYearlyProductSellingGrowth(req.query);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Yearly product order quantities with growth fetched successfully",
+    data: result,
+  });
+});
+
 export const MetaController = {
   getUsersCount,
   getMonthlyRevenue,
   getMonthlyProductOrderQuantities,
   getUserAndRevenueNumber,
+  getYearlyRevenueWithGrowth,
+  getYearlyProductSellingGrowth,
 };

@@ -17,6 +17,7 @@ export type TUser = {
   city?: string;
   houseNo?: string;
   area?: string;
+  promptCount: number;
   createdAt: Date;
   updatedAt: Date;
 };

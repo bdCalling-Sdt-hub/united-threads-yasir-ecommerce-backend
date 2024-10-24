@@ -15,6 +15,7 @@ import { ImageRoutes } from "../modules/images/images.route";
 import { MessageRouter as MessageRoutes } from "../modules/message/messageRoute";
 import { AiRoutes } from "../modules/ai/ai.route";
 import { LibraryRoutes } from "../modules/library/library.route";
+import { NotificationRoutes } from "../modules/notification/notification.route";
 
 const router = Router();
 
@@ -82,6 +83,10 @@ const moduleRoutes = [
   {
     path: "/ai",
     route: AiRoutes,
+  },
+  {
+    path: "/notification",
+    route: NotificationRoutes,
   },
 ];
 

@@ -27,4 +27,4 @@ export type TQuote = {
   updatedAt?: Date;
 };
 
-export type TQuoteStatus = "pending" | "processing" | "delivered" | "canceled";
+export type TQuoteStatus = "pending" | "processing" | "delivered" | "CANCELED";

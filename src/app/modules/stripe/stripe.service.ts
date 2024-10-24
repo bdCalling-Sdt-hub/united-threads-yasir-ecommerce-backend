@@ -18,7 +18,7 @@ const paymentLink = async (order: TOrder) => {
           product_data: {
             name: _id.toString(),
           },
-          unit_amount: order.amount * 100,
+          unit_amount: order.amount / 100,
         },
         quantity: order.quantity,
       },

@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import path from "path";
 import AppError from "../../errors/AppError";
 import { sendMail } from "../../utils/sendMail";
+import { TNotification } from "../notification/notification.interface";
+import { NotificationService } from "../notification/notification.service";
 import { PAYMENT_STATUS } from "../order/order.constant";
 import { TOrder } from "../order/order.interface";
 import OrderModel from "../order/order.model";
@@ -13,6 +15,7 @@ import ProductModel from "../product/product.model";
 import { StripeServices } from "../stripe/stripe.service";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
+import { io } from "../../../server";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -124,6 +127,23 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
       .replace(/{{total}}/g, orderDetails?.amount)
       .replace(/{{support_url}}/g, "mailto:masumraihan3667@gmail.com");
     sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads" });
+
+    // after payment success create a notification and emit event
+    const notificationPayload: TNotification = {
+      title: "Payment Success",
+      message: "Payment Success",
+      receiver: orderDetails?.user?._id,
+      type: "PAYMENT",
+    };
+
+    await NotificationService.createNotificationIntoDb(notificationPayload);
+
+    const result = await NotificationService.getNotificationFromDb(orderDetails?.user?._id);
+
+    io.emit("notification", {
+      success: true,
+      data: result,
+    });
 
     await session.commitTransaction();
     await session.endSession();

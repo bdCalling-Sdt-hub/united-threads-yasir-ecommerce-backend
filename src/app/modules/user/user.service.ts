@@ -22,8 +22,8 @@ const getAllUsersFromDb = async (query: Record<string, unknown>) => {
   return { meta, users };
 };
 
-const getSingleUserFromDb = async (slug: string) => {
-  const result = await UserModel.findOne({ slug, isDelete: false });
+const getSingleUserFromDb = async (userId: string) => {
+  const result = await UserModel.findOne({ _id: userId, isDelete: false });
 
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "User Not Found");

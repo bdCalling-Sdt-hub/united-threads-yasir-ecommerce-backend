@@ -24,6 +24,7 @@ const UserSchema = new Schema<TUser>(
     houseNo: { type: String, default: null },
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },
+    promptCount: { type: Number, default: 0 },
     validation: { type: validationSchema },
   },
   {

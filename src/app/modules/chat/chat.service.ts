@@ -37,7 +37,7 @@ const getMyChatListFromDb = async (userId: string) => {
   // Retrieve the chat list where the user is a participant
   const chatsList = await ChatModel.find({
     participants: { $elemMatch: { user: userData._id } },
-  });
+  }).populate("participants.user");
 
   //if (!chatsList || chatsList.length === 0) {
   //  throw new AppError(httpStatus.NOT_FOUND, "Chat List Not Found");

@@ -167,7 +167,7 @@ const initializeSocketIO = (server: HttpServer) => {
         }
 
         let receiver = receiverId;
-        if (!text && !file && !Array.isArray(file) && file.length === 0)
+        if (!text && !file && !Array.isArray(file) && file?.length === 0)
           return callback({ success: false, message: "Please provide text or file" });
 
         try {
@@ -210,6 +210,27 @@ const initializeSocketIO = (server: HttpServer) => {
           };
 
           const message = await MessageModel.create(payload);
+
+          const getPreUnseenMessages = await MessageModel.find({
+            $or: [
+              {
+                sender: user?._id,
+                receiver: receiver,
+                seen: false,
+              },
+              {
+                sender: receiver,
+                receiver: user?._id,
+                seen: false,
+              },
+            ],
+          }).sort({ updatedAt: 1 });
+
+          socket.emit("notification::" + receiver, {
+            success: true,
+            message: "New message received",
+            data: getPreUnseenMessages || [],
+          });
 
           io.emit("new-message::" + receiver, message);
           io.emit("new-message::" + user._id, message);
@@ -462,6 +483,7 @@ const initializeSocketIO = (server: HttpServer) => {
 
       socket.on("disconnect", () => {
         onlineUsers.delete(user?._id);
+        console.log({ onlineUsers });
         sendSocketEmit(socket, "online-users", {
           success: true,
           message: "A user disconnected",

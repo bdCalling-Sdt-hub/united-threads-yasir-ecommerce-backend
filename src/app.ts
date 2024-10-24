@@ -14,7 +14,13 @@ const app: Application = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["*", "http://localhost:3005", "http://localhost:5010", "http://172.16.0.2:5010"],
+    origin: [
+      "*",
+      "http://localhost:3005",
+      "http://localhost:5010",
+      "http://172.16.0.2:5010",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   }),
@@ -29,6 +35,11 @@ app.use("/api/v1", router);
 
 // cron job for every 5 minutes
 cron.schedule("*/5 * * * *", () => {
+  OrderServices.deleteUnpaidOrder();
+});
+
+// run every day at 00:00
+cron.schedule("0 0 * * *", () => {
   OrderServices.deleteUnpaidOrder();
 });
 

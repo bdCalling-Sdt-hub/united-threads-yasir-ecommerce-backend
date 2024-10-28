@@ -9,5 +9,6 @@ router.get(
   auth("ADMIN", "CSR", "CUSTOMER"),
   NotificationController.getAllNotifications,
 );
+router.patch("/seen", auth("ADMIN", "CSR", "CUSTOMER"), NotificationController.seenNotification);
 
 export const NotificationRoutes = router;

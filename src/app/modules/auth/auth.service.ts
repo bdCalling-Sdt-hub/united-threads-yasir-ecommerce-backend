@@ -195,7 +195,7 @@ const signInIntoDb = async (payload: { email: string; password: string; fcmToken
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid Password");
   }
 
-  if (userData.validation?.isVerified === false) {
+  if (!userData.validation?.isVerified) {
     throw new AppError(httpStatus.BAD_REQUEST, "Account is not verified");
   }
 

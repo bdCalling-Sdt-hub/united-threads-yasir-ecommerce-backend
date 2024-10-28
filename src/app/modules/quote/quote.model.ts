@@ -29,6 +29,7 @@ const QuoteSchema = new Schema<TQuote>(
       enum: ["pending", "processing", "delivered", "canceled"],
       default: "pending",
     },
+    salesCount: { type: Number, default: 0 },
     isAccepted: { type: Boolean, default: false },
     isDeleted: { type: Boolean, default: false },
   },

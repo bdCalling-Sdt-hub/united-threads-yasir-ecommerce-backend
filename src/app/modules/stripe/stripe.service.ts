@@ -5,7 +5,6 @@ import { TOrder } from "../order/order.interface";
 
 const paymentLink = async (order: TOrder) => {
   const { _id } = order;
-
   if (!_id) {
     throw new Error("Order Not Found");
   }
@@ -18,9 +17,9 @@ const paymentLink = async (order: TOrder) => {
           product_data: {
             name: _id.toString(),
           },
-          unit_amount: order.amount / 100,
+          unit_amount: order.amount * 100,
         },
-        quantity: order.quantity,
+        quantity: order.orderType === "SHOP" ? order.quantity : 1,
       },
     ],
     success_url: `${config.payment.webHookUrl}?sessionId={CHECKOUT_SESSION_ID}&orderId=${_id}`,
@@ -60,9 +59,9 @@ const createPaymentLinkForQuoteOrder = async (order: TOrder, amount: number) => 
           product_data: {
             name: _id.toString(),
           },
-          unit_amount: amount * 100,
+          unit_amount: amount / 100,
         },
-        quantity: 1,
+        quantity: order.quantity,
       },
     ],
     success_url: `${config.payment.webHookUrl}?sessionId={CHECKOUT_SESSION_ID}&orderId=${_id}`,

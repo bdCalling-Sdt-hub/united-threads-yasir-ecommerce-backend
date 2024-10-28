@@ -11,6 +11,9 @@ import OrderModel from "./order.model";
 import { PAYMENT_STATUS } from "./order.constant";
 import QuoteCategoryModel from "../quote-category/quote-category.model";
 import CategoryModel from "../category/category.model";
+import { TNotification } from "../notification/notification.interface";
+import { io } from "../../../server";
+import { NotificationServices } from "../notification/notification.service";
 
 // Create Order in Database
 const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
@@ -132,15 +135,38 @@ const getOrderByIdFromDb = async (id: string) => {
 
 // Update Order in Database
 const updateOrderIntoDb = async (orderId: string, payload: Partial<TOrder>) => {
-  const updatedOrder = await OrderModel.findOneAndUpdate(
+  const updatedOrder: any = await OrderModel.findOneAndUpdate(
     { _id: orderId },
     { ...payload },
     { new: true, runValidators: true },
-  );
+  ).populate("user");
 
   if (!updatedOrder) {
     throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
   }
+
+  // after payment success create a notification and emit event
+  const notificationPayload: TNotification = {
+    title: "Order Updated",
+    message: `Your order has been ${updatedOrder.status}.`,
+    receiver: updatedOrder?.user?._id,
+    type: "ORDER",
+  };
+
+  //io.emit(`notification::${updatedOrder?.user?._id}`, {
+  //  success: true,
+  //  data: notificationPayload,
+  //});
+
+  await NotificationServices.createNotificationIntoDb(notificationPayload);
+
+  const { meta } = await NotificationServices.getNotificationFromDb(updatedOrder.user?._id, {});
+
+  io.emit(`notification::${updatedOrder?.user?._id}`, {
+    success: true,
+    meta,
+    data: { ...notificationPayload, order: updatedOrder },
+  });
 
   return updatedOrder;
 };

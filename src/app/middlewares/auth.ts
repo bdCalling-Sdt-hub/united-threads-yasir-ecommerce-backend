@@ -37,7 +37,6 @@ const auth = (...requiredRole: TUserRole[]) => {
       throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
     }
 
-
     if (!userData.isActive) {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
     }
@@ -45,7 +44,7 @@ const auth = (...requiredRole: TUserRole[]) => {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
     }
 
-    if (userData.validation?.isVerified === false) {
+    if (!userData.validation?.isVerified) {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is not verified");
     }
 

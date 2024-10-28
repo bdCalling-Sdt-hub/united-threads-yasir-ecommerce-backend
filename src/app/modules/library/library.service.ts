@@ -9,7 +9,7 @@ const createLibraryIntoDb = async (payload: TLibrary) => {
 
 const getAllLibrariesFromDb = async (query: Record<string, unknown>) => {
   const result = new QueryBuilder(LibraryModel.find(), query)
-    .search(["name "])
+    .search(["name"])
     .filter()
     .fields()
     .paginate()

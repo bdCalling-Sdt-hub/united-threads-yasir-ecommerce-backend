@@ -6,6 +6,7 @@ import { Server, Socket } from "socket.io";
 import config from "./app/config";
 //import AppError from "./app/errors/AppError";
 import { verifyToken } from "./app/modules/auth/auth.utils";
+import { TChat } from "./app/modules/chat/chat.interface";
 import { ChatModel } from "./app/modules/chat/chat.model";
 import { ChatServices } from "./app/modules/chat/chat.service";
 import MessageModel from "./app/modules/message/message.model";
@@ -13,7 +14,6 @@ import { MessageServices } from "./app/modules/message/message.service";
 import { TUser } from "./app/modules/user/user.interface";
 import UserModel from "./app/modules/user/user.model";
 import { TTokenUser } from "./app/types/common";
-import { TChat } from "./app/modules/chat/chat.interface";
 const initializeSocketIO = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
@@ -166,6 +166,11 @@ const initializeSocketIO = (server: HttpServer) => {
           return;
         }
 
+        if (senderDetails.isMessageBlock === true) {
+          socket.emit("error", { success: false, message: "Your account is blocked for message" });
+          return;
+        }
+
         let receiver = receiverId;
         if (!text && !file && !Array.isArray(file) && file?.length === 0)
           return callback({ success: false, message: "Please provide text or file" });
@@ -211,26 +216,28 @@ const initializeSocketIO = (server: HttpServer) => {
 
           const message = await MessageModel.create(payload);
 
-          const getPreUnseenMessages = await MessageModel.find({
-            $or: [
-              {
-                sender: user?._id,
-                receiver: receiver,
-                seen: false,
-              },
-              {
-                sender: receiver,
-                receiver: user?._id,
-                seen: false,
-              },
-            ],
-          }).sort({ updatedAt: 1 });
+          //const getPreUnseenMessages = await MessageModel.find({
+          //  $or: [
+          //    {
+          //      sender: user?._id,
+          //      receiver: receiver,
+          //      seen: false,
+          //    },
+          //    {
+          //      sender: receiver,
+          //      receiver: user?._id,
+          //      seen: false,
+          //    },
+          //  ],
+          //}).sort({ updatedAt: 1 });
 
-          socket.emit("notification::" + receiver, {
-            success: true,
-            message: "New message received",
-            data: getPreUnseenMessages || [],
-          });
+          //socket.emit("notification::" + receiver, {
+          //  success: true,
+          //  message: "New message received",
+          //  data: {
+          //    unseenMessage: getPreUnseenMessages.length || 0,
+          //  },
+          //});
 
           io.emit("new-message::" + receiver, message);
           io.emit("new-message::" + user._id, message);
@@ -262,22 +269,21 @@ const initializeSocketIO = (server: HttpServer) => {
         }
       });
 
-      socket.on("seen", async ({ chatId }, callback) => {
-        try {
-          if (!chatId) {
-            if (typeof callback === "function") {
-              callback({
-                success: false,
-                message: "chatId id is required",
-              });
-            }
-            io.emit("error", {
+      socket.on("seen", async ({ chatId } = { chatId: null }, callback) => {
+        if (!chatId) {
+          if (typeof callback === "function") {
+            callback({
               success: false,
               message: "chatId id is required",
             });
-            return;
           }
-
+          io.emit("error", {
+            success: false,
+            message: "chatId id is required",
+          });
+          return;
+        }
+        try {
           const chatList: TChat | null = await ChatModel.findById(chatId);
           if (!chatList) {
             //callback({
@@ -408,9 +414,12 @@ const initializeSocketIO = (server: HttpServer) => {
 
           const blockUser = "block::" + receiverId;
           const userDetails = await UserModel.findOneAndUpdate(
-            { _id: receiverId, isActive: true },
-            { isActive: false },
+            { _id: receiverId, isMessageBlock: false },
+            { isMessageBlock: true },
+            { new: true },
           );
+
+          console.log({ userDetails, receiverId });
 
           if (!userDetails) {
             if (typeof callback === "function") {
@@ -422,7 +431,7 @@ const initializeSocketIO = (server: HttpServer) => {
             return;
           }
 
-          socket.emit("user-details", { success: true, data: userDetails });
+          socket.emit("user-details::" + receiverId, { success: true, data: userDetails });
 
           io.emit(blockUser, { success: true, data: userDetails });
         } catch (error: any) {
@@ -452,8 +461,9 @@ const initializeSocketIO = (server: HttpServer) => {
           const unblockUser = "unblock::" + receiverId;
 
           const userDetails = await UserModel.findOneAndUpdate(
-            { _id: receiverId, isActive: false },
-            { isActive: true },
+            { _id: receiverId, isMessageBlock: true },
+            { isMessageBlock: false },
+            { new: true },
           );
 
           if (!userDetails) {
@@ -466,7 +476,7 @@ const initializeSocketIO = (server: HttpServer) => {
             return;
           }
 
-          socket.emit("user-details", { success: true, data: userDetails });
+          socket.emit("user-details::" + receiverId, { success: true, data: userDetails });
 
           io.emit(unblockUser, { success: true, data: userDetails });
         } catch (error: any) {

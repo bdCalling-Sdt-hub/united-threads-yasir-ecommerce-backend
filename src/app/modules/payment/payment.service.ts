@@ -7,7 +7,7 @@ import path from "path";
 import AppError from "../../errors/AppError";
 import { sendMail } from "../../utils/sendMail";
 import { TNotification } from "../notification/notification.interface";
-import { NotificationService } from "../notification/notification.service";
+import { NotificationServices } from "../notification/notification.service";
 import { PAYMENT_STATUS } from "../order/order.constant";
 import { TOrder } from "../order/order.interface";
 import OrderModel from "../order/order.model";
@@ -16,6 +16,9 @@ import { StripeServices } from "../stripe/stripe.service";
 import { TPayment } from "./payment.interface";
 import { PaymentModel } from "./payment.model";
 import { io } from "../../../server";
+import { QuoteProductModel } from "../quote-product/quote-product.model";
+import UserModel from "../user/user.model";
+import { USER_ROLE } from "../user/user.constant";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -69,7 +72,6 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   }
 
   const session = await mongoose.startSession();
-
   try {
     session.startTransaction();
 
@@ -97,14 +99,14 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
     ).session(session);
 
     if (orderDetails?.quote) {
-      //await QuoteProductModel.updateOne(
-      //  {
-      //    _id: orderDetails?.quote,
-      //  },
-      //  {
-      //    stock: orderDetails?.quote?.stock - 1,
-      //  },
-      //).session(session);
+      await QuoteProductModel.updateOne(
+        {
+          _id: orderDetails?.quote,
+        },
+        {
+          stock: orderDetails?.quote?.stock - 1,
+        },
+      ).session(session);
     } else if (orderDetails?.product) {
       await ProductModel.updateOne(
         {
@@ -131,19 +133,31 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
     // after payment success create a notification and emit event
     const notificationPayload: TNotification = {
       title: "Payment Success",
-      message: "Payment Success",
+      message: "Your payment is successful",
       receiver: orderDetails?.user?._id,
       type: "PAYMENT",
     };
 
-    await NotificationService.createNotificationIntoDb(notificationPayload);
-
-    const result = await NotificationService.getNotificationFromDb(orderDetails?.user?._id);
-
-    io.emit("notification", {
+    io.emit(`notification::${orderDetails?.user?._id}`, {
       success: true,
-      data: result,
+      data: notificationPayload,
     });
+    await NotificationServices.createNotificationIntoDb(notificationPayload);
+    const admin = await UserModel.findOne({ role: USER_ROLE.ADMIN });
+
+    if (admin) {
+      const adminNotificationPayload: TNotification = {
+        title: "Payment Success",
+        message: `Send $${orderDetails?.amount} for order $${orderDetails?._id}`,
+        receiver: admin._id,
+        type: "PAYMENT",
+      };
+      io.emit(`notification::${admin._id}`, {
+        success: true,
+        data: notificationPayload,
+      });
+      await NotificationServices.createNotificationIntoDb(adminNotificationPayload);
+    }
 
     await session.commitTransaction();
     await session.endSession();

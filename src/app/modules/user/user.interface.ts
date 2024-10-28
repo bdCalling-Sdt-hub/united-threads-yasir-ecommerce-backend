@@ -18,6 +18,7 @@ export type TUser = {
   houseNo?: string;
   area?: string;
   promptCount: number;
+  isMessageBlock?: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

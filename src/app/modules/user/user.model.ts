@@ -25,6 +25,7 @@ const UserSchema = new Schema<TUser>(
     isActive: { type: Boolean, default: true },
     isDelete: { type: Boolean, default: false },
     promptCount: { type: Number, default: 0 },
+    isMessageBlock: { type: Boolean, default: false },
     validation: { type: validationSchema },
   },
   {

@@ -117,7 +117,7 @@ router.patch(
       }
 
       if (req.body?.data) {
-        const data = req.body.data;
+        const data = JSON.parse(req.body.data);
 
         if (files?.primaryImage?.[0]) {
           data.primaryImage = primaryImageUrl;
@@ -128,9 +128,10 @@ router.patch(
         }
 
         req.body = ProductValidations.productUpdateSchema.parse({
-          ...JSON.parse(data),
+          ...data,
         });
-      } else {
+
+       } else {
         const data: Record<string, unknown> = {};
 
         if (files?.primaryImage?.[0]) {

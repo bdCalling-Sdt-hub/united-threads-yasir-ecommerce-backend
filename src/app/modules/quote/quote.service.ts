@@ -10,6 +10,9 @@ import { PaymentModel } from "../payment/payment.model";
 import UserModel from "../user/user.model";
 import { TQuote } from "./quote.interface";
 import QuoteModel from "./quote.model";
+import { NotificationServices } from "../notification/notification.service";
+import { TNotification } from "../notification/notification.interface";
+import { io } from "../../../server";
 
 // Create Quote in Database
 const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
@@ -21,6 +24,26 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
   // Create a new Quote in the database
   const result = await QuoteModel.create({ ...payload, user: userData._id });
+
+  const csrId = await UserModel.findOne({ role: "CSR" }).select("_id").lean();
+
+  if (csrId) {
+    // send notification to csr
+    const notification: TNotification = {
+      receiver: csrId._id,
+      title: "New Quote Request",
+      message: `A new quote request has been created by ${userData.firstName} ${userData.lastName}.`,
+      type: "QUOTE",
+    };
+
+    io.emit(`notification::${csrId._id}`, {
+      success: true,
+      data: notification,
+    });
+
+    await NotificationServices.createNotificationIntoDb(notification);
+  }
+
   return result;
 };
 
@@ -59,8 +82,6 @@ const getQuoteByIdFromDb = async (id: string) => {
 
 // Update Quote in Database
 const updateQuoteIntoDb = async (quoteId: string, payload: Partial<TQuote>) => {
-  console.log({ payload });
-
   const updatedQuote = await QuoteModel.findOneAndUpdate(
     { _id: quoteId, isDeleted: false },
     { ...payload },
@@ -70,6 +91,20 @@ const updateQuoteIntoDb = async (quoteId: string, payload: Partial<TQuote>) => {
   if (!updatedQuote) {
     throw new AppError(httpStatus.NOT_FOUND, "Quote Not Found");
   }
+
+  const notification: TNotification = {
+    receiver: updatedQuote.user,
+    title: "Quote Updated",
+    message: `Your quote has been ${updatedQuote.quoteStatus}.`,
+    type: "QUOTE",
+  };
+
+  const notificationData = await NotificationServices.createNotificationIntoDb(notification);
+
+  io.emit(`notification::${updatedQuote.user}`, {
+    success: true,
+    data: notificationData,
+  });
 
   return updatedQuote;
 };
@@ -148,6 +183,7 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       { new: true, runValidators: true, session },
     );
 
+
     // AFTER ACCEPT QUOTE BY USER THEN CREATE A ORDER IN DATABASE
     const orderPayload: TOrder = {
       orderType: "QUOTE",
@@ -165,7 +201,6 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       size: quoteData.size,
       color: quoteData.hexColor,
     };
-
     //const order = await OrderServices.createOrderForQuote(user, orderPayload);
 
     const result = await OrderModel.create([{ ...orderPayload, user: user._id }], {

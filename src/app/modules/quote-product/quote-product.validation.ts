@@ -35,7 +35,6 @@ const updateQuoteProductValidation = z
       .optional(),
     frontSide: z.string().optional(),
     backSide: z.string().optional(),
-    stock: z.number().optional(),
     images: z.array(productImageValidation).optional(),
     category: z.string().optional(),
     colorsPreferences: z

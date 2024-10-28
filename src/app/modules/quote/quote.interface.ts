@@ -25,6 +25,7 @@ export type TQuote = {
   isAccepted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  salesCount?: number;
 };
 
 export type TQuoteStatus = "pending" | "processing" | "delivered" | "CANCELED";

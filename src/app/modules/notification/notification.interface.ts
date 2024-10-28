@@ -7,6 +7,7 @@ export type TNotification = {
   message: string;
   link?: string;
   seen?: boolean;
+  notificationFor?: "ADMIN" | "CSR" | "CUSTOMER";
   type: "PAYMENT" | "ORDER" | "QUOTE" | "MESSAGE";
   createdAt?: Date;
   updatedAt?: Date;

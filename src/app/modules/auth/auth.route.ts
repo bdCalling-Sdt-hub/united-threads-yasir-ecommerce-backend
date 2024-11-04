@@ -6,7 +6,11 @@ import auth from "../../middlewares/auth";
 
 const router = Router();
 router.get("/refresh-token", AuthController.refreshToken);
-router.post("/sign-up", AuthController.signUp);
+router.post(
+  "/sign-up",
+  validateRequest(AuthValidations.signUpValidationSchema),
+  AuthController.signUp,
+);
 router.post("/sign-in", validateRequest(AuthValidations.signInValidation), AuthController.signIn);
 router.patch(
   "/change-password",

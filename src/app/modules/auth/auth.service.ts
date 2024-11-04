@@ -12,6 +12,7 @@ import { sendMail } from "../../utils/sendMail";
 import UserModel from "../user/user.model";
 import { createToken, verifyToken } from "./auth.utils";
 import { TUser, TUserRole } from "../user/user.interface";
+import { USER_ROLE } from "../user/user.constant";
 
 const signUpIntoDb = async (payload: TUser) => {
   const salt = Number(config.bcrypt_salt_rounds);
@@ -21,6 +22,7 @@ const signUpIntoDb = async (payload: TUser) => {
     ...payload,
     validation: { isVerified: false, otp: 0, expiry: null },
     password: hashedPassword,
+    role: USER_ROLE.CUSTOMER,
   });
 
   if (!userData) {
@@ -29,16 +31,10 @@ const signUpIntoDb = async (payload: TUser) => {
 
   const jwtPayload = { email: userData.email, role: userData.role, _id: userData._id.toString() };
 
-  const accessToken = createToken(
+  const token = createToken(
     jwtPayload,
-    config.jwt_access_secret as Secret,
-    config.access_token_expire_in as string,
-  );
-
-  const refreshToken = createToken(
-    jwtPayload,
-    config.jwt_refresh_secret as Secret,
-    config.refresh_token_expire_in as string,
+    config.jwt_reset_secret as Secret,
+    config.jwt_reset_token_expire_in as string,
   );
 
   //  SEND EMAIL FOR VERIFICATION
@@ -56,31 +52,25 @@ const signUpIntoDb = async (payload: TUser) => {
   const html = forgetOtpEmail
     .replace(/{{name}}/g, userData.firstName + " " + userData.lastName)
     .replace(/{{otp}}/g, otp.toString());
-  sendMail({ to: userData.email, html, subject: "Forget Password Otp From United Threads" });
+  await sendMail({
+    to: userData.email,
+    html,
+    subject: "Forget Password Otp From United Threads",
+  });
 
   return {
-    accessToken,
-    refreshToken,
-    user: {
-      _id: userData._id,
-      email: userData.email,
-      role: userData.role,
-      profilePicture: userData.profilePicture,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      validation: userData.validation,
-    },
+    token,
   };
 };
 
-const verifyAccount = async (token: string, payload: { email: string; otp: number }) => {
+const verifyAccount = async (token: string, payload: { otp: number }) => {
   if (!token) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Please provide your token");
+    throw new AppError(httpStatus.BAD_REQUEST, "Please provide your token");
   }
 
   const decode = verifyToken(token, config.jwt_reset_secret as Secret);
   if (!decode) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Token");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid Token");
   }
 
   const userData = await UserModel.findOne({ email: decode.email }).select("+validation.otp");
@@ -101,7 +91,7 @@ const verifyAccount = async (token: string, payload: { email: string; otp: numbe
   }
 
   if (userData.validation?.otp !== payload.otp) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Otp");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid Otp");
   }
 
   await UserModel.findByIdAndUpdate(
@@ -131,8 +121,10 @@ const verifyAccount = async (token: string, payload: { email: string; otp: numbe
   };
 };
 
-const resendOtp = async (payload: { email: string }) => {
-  const userData = await UserModel.findOne({ email: payload.email });
+const resendOtp = async (user: TTokenUser, payload: { email?: string }) => {
+  const userData = await UserModel.findOne({ email: user.email || payload.email }).select(
+    "+validation.otp",
+  );
 
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
@@ -155,12 +147,14 @@ const resendOtp = async (payload: { email: string }) => {
     { email: userData.email },
     { validation: { isVerified: false, otp, expiry: expiresAt.toString() } },
   );
+
+  //  SEND EMAIL FOR VERIFICATION
   const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
   const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = forgetOtpEmail
     .replace(/{{name}}/g, userData.firstName + " " + userData.lastName)
     .replace(/{{otp}}/g, otp.toString());
-  sendMail({ to: userData.email, html, subject: "Forget Password Otp From Clinica" });
+  sendMail({ to: userData.email, html, subject: "OTP From United Threads" });
 
   // after send verification email put the otp into db
   await UserModel.findByIdAndUpdate(
@@ -201,7 +195,7 @@ const signInIntoDb = async (payload: { email: string; password: string; fcmToken
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid Password");
   }
 
-  if (userData.validation?.isVerified === false) {
+  if (!userData.validation?.isVerified) {
     throw new AppError(httpStatus.BAD_REQUEST, "Account is not verified");
   }
 
@@ -292,28 +286,23 @@ const forgetPasswordIntoDb = async (email: string) => {
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "Invalid Email");
   }
-  if (!userData.isActive) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
-  }
   if (userData.isDelete) {
     throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
-  }
-  if (!userData.validation?.isVerified) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);
   const currentTime = new Date();
   const jwtPayload = { email: userData.email, role: userData.role, _id: userData._id.toString() };
   // generate token
-  const expiresAt = moment(currentTime).add(3, "minute");
-  const token = createToken(jwtPayload, config.jwt_reset_secret as Secret, "3m");
+  const expiresAt = moment(currentTime).add(60, "minute");
+  const token = createToken(jwtPayload, config.jwt_reset_secret as Secret, "1h");
 
   //  find user and update validation
   await UserModel.findOneAndUpdate(
     { email },
     { validation: { isVerified: false, otp, expiry: expiresAt.toString() } },
   );
+
   const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
   const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = forgetOtpEmail
@@ -326,7 +315,7 @@ const forgetPasswordIntoDb = async (email: string) => {
 };
 
 const resetPassword = async (token: string, payload: { password: string }) => {
-  const decode = jwt.verify(token, config.jwt_reset_secret as Secret) as TTokenUser;
+  const decode = jwt.verify(token, config.jwt_access_secret as Secret) as TTokenUser;
   const userData = await UserModel.findOne({ email: decode.email });
 
   if (!userData) {

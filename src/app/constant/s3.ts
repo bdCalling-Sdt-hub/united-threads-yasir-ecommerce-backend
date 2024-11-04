@@ -1,12 +1,8 @@
-import {
-  DeleteObjectCommand,
-  DeleteObjectsCommand,
-  PutObjectCommand,
-} from '@aws-sdk/client-s3';
-import { s3Client } from './aws';
-import AppError from '../errors/AppError';
-import httpStatus from 'http-status';
-import config from '../config';
+import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "./aws";
+import AppError from "../errors/AppError";
+import httpStatus from "http-status";
+import config from "../config";
 
 //upload a single file
 export const uploadToS3 = async (
@@ -23,14 +19,14 @@ export const uploadToS3 = async (
   try {
     const key = await s3Client.send(command);
     if (!key) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'File Upload failed');
+      throw new AppError(httpStatus.BAD_REQUEST, "File Upload failed");
     }
 
     const url = `https://${config.aws.bucket}.s3.${config.aws.region}.amazonaws.com/${fileName}`;
 
     return url;
   } catch (error) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'File Upload failed');
+    throw new AppError(httpStatus.BAD_REQUEST, "File Upload failed");
   }
 };
 
@@ -43,8 +39,8 @@ export const deleteFromS3 = async (key: string) => {
     });
     await s3Client.send(command);
   } catch (error) {
-    console.log('🚀 ~ deleteFromS3 ~ error:', error);
-    throw new Error('s3 file delete failed');
+    console.log("🚀 ~ deleteFromS3 ~ error:", error);
+    throw new Error("s3 file delete failed");
   }
 };
 
@@ -60,9 +56,7 @@ export const uploadManyToS3 = async (
 ): Promise<{ url: string; key: string }[]> => {
   try {
     const uploadPromises = files.map(async ({ file, path, key }) => {
-      const newFileName = key
-        ? key
-        : `${Math.floor(100000 + Math.random() * 900000)}${Date.now()}`;
+      const newFileName = key ? key : `${Math.floor(100000 + Math.random() * 900000)}${Date.now()}`;
 
       const fileKey = `${path}/${newFileName}`;
       const command = new PutObjectCommand({
@@ -80,7 +74,7 @@ export const uploadManyToS3 = async (
     const uploadedUrls = await Promise.all(uploadPromises);
     return uploadedUrls;
   } catch (error) {
-    throw new Error('File Upload failed');
+    throw new Error("File Upload failed");
   }
 };
 
@@ -89,7 +83,7 @@ export const deleteManyFromS3 = async (keys: string[]) => {
     const deleteParams = {
       Bucket: config.aws.bucket,
       Delete: {
-        Objects: keys.map(key => ({ Key: key })),
+        Objects: keys.map((key) => ({ Key: key })),
         Quiet: false,
       },
     };
@@ -100,7 +94,7 @@ export const deleteManyFromS3 = async (keys: string[]) => {
 
     return response;
   } catch (error) {
-    console.error('Error deleting S3 files:', error);
-    throw new AppError(httpStatus.BAD_REQUEST, 'S3 file delete failed');
+    console.error("Error deleting S3 files:", error);
+    throw new AppError(httpStatus.BAD_REQUEST, "S3 file delete failed");
   }
 };

@@ -44,7 +44,7 @@ const auth = (...requiredRole: TUserRole[]) => {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
     }
 
-    if (userData.validation?.isVerified === false) {
+    if (!userData.validation?.isVerified) {
       throw new AppError(httpStatus.BAD_REQUEST, "Account is not verified");
     }
 

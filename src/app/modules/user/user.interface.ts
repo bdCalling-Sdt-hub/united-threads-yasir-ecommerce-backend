@@ -12,6 +12,13 @@ export type TUser = {
   role: TUserRole;
   isActive: boolean;
   isDelete: boolean;
+  country?: string;
+  state?: string;
+  city?: string;
+  houseNo?: string;
+  area?: string;
+  promptCount: number;
+  isMessageBlock?: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

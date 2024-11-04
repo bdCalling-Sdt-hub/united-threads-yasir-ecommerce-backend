@@ -7,6 +7,7 @@ export default {
   NODE_ENV: process.env.NODE_ENV,
   appLink: process.env.APP_LINK,
   port: process.env.PORT,
+  ip: process.env.IP,
   socket_port: process.env.SOCKET_PORT,
   database_url: process.env.DATABASE_URL,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
@@ -28,5 +29,18 @@ export default {
     port: process.env.EMAIL_PORT,
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
+  },
+  payment: {
+    secretKey: process.env.PAYMENT_GATEWAY_SECRET_KEY,
+    webHookKey: process.env.WEB_HOOK_SECRET_KEY,
+    paymentSuccessUrl: process.env.PAYMENT_SUCCESS_URL,
+    paymentCancelUrl: process.env.PAYMENT_CANCEL_URL,
+    webHookUrl: process.env.WEB_HOOK_URL,
+  },
+
+  ai: {
+    apiKey: process.env.AI_API_KEY,
+    projectId: process.env.AI_ORGANIZATION_ID,
+    organizationId: process.env.AI_ORGANIZATION_ID,
   },
 };

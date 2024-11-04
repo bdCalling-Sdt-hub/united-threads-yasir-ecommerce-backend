@@ -16,7 +16,7 @@ const getAllUser = catchAsync(async (req, res) => {
 });
 
 const getSingleUser = catchAsync(async (req, res) => {
-  const result = await UserServices.getSingleUserFromDb(req.params.slug);
+  const result = await UserServices.getSingleUserFromDb(req.params.userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -26,7 +26,7 @@ const getSingleUser = catchAsync(async (req, res) => {
 });
 
 const updateUser = catchAsync(async (req, res) => {
-  const result = await UserServices.updateUser(req.params.slug, req.body);
+  const result = await UserServices.updateUser(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -42,16 +42,6 @@ const deleteMyProfile = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Profile deleted successfully",
-    data: result,
-  });
-});
-
-const getUsersCount = catchAsync(async (req, res) => {
-  const result = await UserServices.getUsersCount(req.query);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Users count fetched successfully",
     data: result,
   });
 });
@@ -78,12 +68,45 @@ const updateProfile = catchAsync(async (req, res) => {
   });
 });
 
+const deleteUser = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const result = await UserServices.deleteUserFromDb(userId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User deleted successfully",
+    data: result,
+  });
+});
+
+const sendMailIntoAdmin = catchAsync(async (req, res) => {
+  const result = await UserServices.sendMailIntoAdmin(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Mail sent successfully",
+    data: result,
+  });
+});
+
+const getCsrId = catchAsync(async (req, res) => {
+  const result = await UserServices.getCsrIdFromDb();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Csr Id fetched successfully",
+    data: result,
+  });
+});
+
 export const UserControllers = {
   getAllUser,
   getSingleUser,
   updateUser,
   deleteMyProfile,
-  getUsersCount,
   getProfile,
   updateProfile,
+  deleteUser,
+  sendMailIntoAdmin,
+  getCsrId,
 };

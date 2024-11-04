@@ -28,6 +28,8 @@ app.use(
       "http://localhost:3000",
       "https://dashboard.theunitedthreads.com",
       "https://theunitedthreads.com",
+      "https://www.dashboard.theunitedthreads.com",
+      "https://www.theunitedthreads.com",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,

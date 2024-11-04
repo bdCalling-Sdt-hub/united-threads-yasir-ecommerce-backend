@@ -107,15 +107,6 @@ const deleteUserFromDb = async (userId: string) => {
   if (!userData) {
     throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
   }
-  if (!userData.isActive) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Account is Blocked");
-  }
-  if (userData.isDelete) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Account is Deleted");
-  }
-  if (!userData.validation?.isVerified) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
-  }
 
   await UserModel.findByIdAndUpdate({ _id: userId }, { isDelete: true });
   return null;

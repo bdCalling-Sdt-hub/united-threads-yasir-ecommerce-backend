@@ -17,7 +17,7 @@ const admin = {
     isVerified: true,
   },
   password: "123456",
-  email: " hello@theunitedthreads.com",
+  email: "hello@theunitedthreads.com",
   role: USER_ROLE.ADMIN as TUser["role"],
 };
 

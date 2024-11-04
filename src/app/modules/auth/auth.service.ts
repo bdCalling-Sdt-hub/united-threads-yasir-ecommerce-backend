@@ -55,7 +55,7 @@ const signUpIntoDb = async (payload: TUser) => {
   await sendMail({
     to: userData.email,
     html,
-    subject: "Forget Password Otp From United Threads",
+    subject: "Account Verification Otp From United Threads",
   });
 
   return {

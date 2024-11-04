@@ -26,6 +26,8 @@ app.use(
       "http://localhost:5010",
       "http://172.16.0.2:5010",
       "http://localhost:3000",
+      "https://dashboard.theunitedthreads.com",
+      "https://theunitedthreads.com",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,

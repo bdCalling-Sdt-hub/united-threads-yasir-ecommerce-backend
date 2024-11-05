@@ -2,17 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
+import cron from "node-cron";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFoundHandler from "./app/middlewares/notFoundHandler";
-import router from "./app/routes";
-import cron from "node-cron";
 import { OrderServices } from "./app/modules/order/order.services";
-import { UserServices } from "./app/modules/user/user.service";
-import { TNotification } from "./app/modules/notification/notification.interface";
-import { Schema } from "mongoose";
-import { io } from "./server";
-import UserModel from "./app/modules/user/user.model";
-import { NotificationServices } from "./app/modules/notification/notification.service";
+import router from "./app/routes";
 
 const app: Application = express();
 
@@ -35,6 +29,9 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use(express.json({ limit: "500mb" }));
+app.use(express.urlencoded({ limit: "500mb", extended: true }));
 
 app.get("/", async (req: Request, res: Response) => {
   res.send({ message: "Server is Running" });

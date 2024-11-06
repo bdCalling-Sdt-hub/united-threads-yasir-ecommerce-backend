@@ -34,11 +34,6 @@ const seenNotificationIntoDb = async (userId: string) => {
     io.emit(`notification::${userId}`, { success: true, data: {}, meta: { total: 0 } });
   }
 
-  await NotificationModel.deleteMany({
-    receiver: userId,
-    seen: true,
-  });
-
   return result;
 };
 

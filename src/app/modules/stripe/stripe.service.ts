@@ -36,7 +36,7 @@ const paymentLink = async (order: TOrder) => {
         order: JSON.stringify(order),
       },
     },
-    payment_method_types: ["card"],
+    payment_method_types: ["card", "cashapp", "amazon_pay", "us_bank_account"],
 
     // expire in 30 minutes
     //expires_at: new Date(Date.now() + 30 * 60 * 1000),

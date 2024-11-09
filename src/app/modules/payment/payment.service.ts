@@ -125,8 +125,18 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
       .replace(/{{name}}/g, orderDetails?.user?.firstName as string)
       .replace(/{{product_name}}/g, orderDetails?.product?.name)
       .replace(/{{date}}/g, moment(new Date()).format("DD MMMM YYYY hh:mm A"))
-      .replace(/{{amount}}/g, orderDetails?.amount)
-      .replace(/{{total}}/g, orderDetails?.amount)
+      .replace(
+        /{{amount}}/g,
+        orderData.orderType === "QUOTE"
+          ? orderDetails?.amount
+          : orderDetails?.amount * orderDetails?.quantity,
+      )
+      .replace(
+        /{{total}}/g,
+        orderData.orderType === "QUOTE"
+          ? orderDetails?.amount
+          : orderDetails?.amount * orderDetails?.quantity,
+      )
       .replace(/{{support_url}}/g, "mailto:masumraihan3667@gmail.com");
     sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads" });
 

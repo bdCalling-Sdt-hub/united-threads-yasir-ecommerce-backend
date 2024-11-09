@@ -31,7 +31,7 @@ export const generateImage = async (
       prompt,
       n,
       size,
-      model: "dall-e-2",
+      model: "dall-e-3",
       response_format: "b64_json",
     });
 

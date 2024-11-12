@@ -121,7 +121,8 @@ const sendMailIntoAdmin = async (data: {
   const parentMailTemplate = path.join(process.cwd(), "/src/template/customer_email.html");
   const sendEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = sendEmail
-    .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
+    .replace(/{{firstName}}/g, `${data.firstName}`)
+    .replace(/{{lastName}}/g, `${data.lastName}`)
     .replace(/{{description}}/g, data.description)
     .replace(/{{email}}/g, data.email)
     .replace(/{{subject}}/g, data.subject);

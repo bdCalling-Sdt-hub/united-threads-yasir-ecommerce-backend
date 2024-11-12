@@ -125,8 +125,8 @@ const sendMailIntoAdmin = async (data: {
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
     .replace(/{{description}}/g, data.description);
   await sendMail({
-    to: "masumraihan3667@gmail.com" as string,
-    from: "mdmasumraihan1@gmail.com",
+    to: config.email.user as string,
+    from: data.email,
     html,
     subject: `${data.subject} | theunitedthreads.com`,
   });

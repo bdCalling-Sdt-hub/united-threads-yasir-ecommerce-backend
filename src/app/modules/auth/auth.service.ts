@@ -50,7 +50,7 @@ const signUpIntoDb = async (payload: TUser) => {
   const parentMailTemplate = path.join(process.cwd(), "/src/template/verify.html");
   const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = forgetOtpEmail
-    .replace(/{{name}}/g, userData.firstName + " " + userData.lastName)
+    .replace(/{{name}}/g, userData.firstName || "" + " " + userData.lastName || "")
     .replace(/{{otp}}/g, otp.toString());
   await sendMail({
     to: userData.email,

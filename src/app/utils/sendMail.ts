@@ -21,6 +21,12 @@ export const sendMail = async ({ to, html, subject, from }: TEmail) => {
     },
   });
 
+  console.log({
+    to,
+    from,
+    subject,
+  });
+
   // send mail with defined transport object
   await transporter.sendMail({
     from: from || config.email.user, // sender address

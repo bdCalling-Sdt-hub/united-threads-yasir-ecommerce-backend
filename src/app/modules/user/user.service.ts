@@ -28,7 +28,6 @@ const getSingleUserFromDb = async (userId: string) => {
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
   }
-
   return result;
 };
 
@@ -125,7 +124,7 @@ const sendMailIntoAdmin = async (data: {
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
     .replace(/{{description}}/g, data.description);
   await sendMail({
-    to: config.email.user as string,
+    to: "masumraihan3667@gmail.com" as string,
     from: data.email,
     html,
     subject: `${data.subject} | theunitedthreads.com`,

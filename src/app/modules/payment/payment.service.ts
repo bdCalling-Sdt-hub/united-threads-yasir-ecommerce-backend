@@ -19,6 +19,7 @@ import { io } from "../../../server";
 import { QuoteProductModel } from "../quote-product/quote-product.model";
 import UserModel from "../user/user.model";
 import { USER_ROLE } from "../user/user.constant";
+import config from "../../config";
 
 const createPaymentIntoDb = async (payload: TPayment) => {
   console.log(payload);
@@ -137,7 +138,7 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
           ? orderDetails?.amount
           : orderDetails?.amount * orderDetails?.quantity,
       )
-      .replace(/{{support_url}}/g, "mailto:masumraihan3667@gmail.com");
+      .replace(/{{support_url}}/g, `mailto:${config.email.host}`);
     sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads" });
 
     // after payment success create a notification and emit event

@@ -139,7 +139,7 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
           : orderDetails?.amount * orderDetails?.quantity,
       )
       .replace(/{{support_url}}/g, `mailto:${config.email.host}`);
-    sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads" });
+    sendMail({ to: orderDetails?.user.email, html, subject: "Invoice From United Threads", });
 
     // after payment success create a notification and emit event
     const notificationPayload: TNotification = {

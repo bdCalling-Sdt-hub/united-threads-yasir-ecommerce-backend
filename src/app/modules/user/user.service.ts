@@ -119,7 +119,6 @@ const sendMailIntoAdmin = async (data: {
   subject: string;
   description: string;
 }) => {
-  console.log(data);
   const parentMailTemplate = path.join(process.cwd(), "/src/template/customer_email.html");
   const sendEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = sendEmail
@@ -127,7 +126,7 @@ const sendMailIntoAdmin = async (data: {
     .replace(/{{description}}/g, data.description);
   await sendMail({
     to: "masumraihan3667@gmail.com" as string,
-    from: data.email,
+    from: "mdmasumraihan1@gmail.com",
     html,
     subject: `${data.subject} | theunitedthreads.com`,
   });

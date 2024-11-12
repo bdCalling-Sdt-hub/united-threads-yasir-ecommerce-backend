@@ -1,60 +1,44 @@
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>Verify Your Account</title>
 </head>
 
-<body>
-  <main style="display: flex; justify-content: center;">
-    <div style="font-family: Helvetica,Arial,sans-serif;max-width:700px;overflow:auto;line-height:2">
-      <div style="margin:50px auto;width:70%;padding:20px 0">
-        <div style="border-bottom:1px solid #eee">
-          <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">United Threads</a>
-        </div>
-        <p style="font-size:1.1em">Hi,{{name}}</p>
-        <h3>
-          Thank you for choosing United Threads.
-        </h3>
-        <p style="font-size: 12px; color: gray; line-height: 16px;">
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <main style="display: flex; justify-content: center; padding: 20px;">
+    <div
+      style="background-color: #ffffff; width: 100%; max-width: 600px; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+
+      <!-- Header Section -->
+      <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; text-align: center;">
+        <a href="#" style="font-size: 1.6em; color: #171717; text-decoration: none; font-weight: bold;">United
+          Threads</a>
+      </div>
+
+      <!-- Body Content -->
+      <div style="padding: 20px;">
+        <p style="font-size: 1.1em; color: #333;">Hi {{name}},</p>
+        <h3 style="color: #171717; font-weight: normal;">Thank you for choosing United Threads.</h3>
+        <p style="font-size: 0.95em; color: #555; line-height: 1.6;">
           We received a request to verify your account at United Threads. For security purposes, please use the One-Time
           Password (OTP) provided below to complete the verification process. This OTP is valid for the next 5 minutes.
         </p>
         <h2
-          style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">
-          {{otp}}</h2>
-        <p style="font-size:0.9em;">Regards,<br />United Threads</p>
-        <hr style="border:none;border-top:1px solid #eee" />
+          style="background: #171717; margin: 20px auto; width: max-content; padding: 10px 20px; color: #ffffff; border-radius: 4px;">
+          {{otp}}
+        </h2>
+        <p style="font-size: 0.9em; color: #333; margin-top: 20px;">Regards,<br />The United Threads Team</p>
       </div>
+
+      <!-- Footer Section -->
+      <footer style="border-top: 1px solid #eee; padding: 20px; text-align: center; color: #96a2b3; font-size: 0.85em;">
+        &copy; United Threads. All rights reserved.
+      </footer>
     </div>
   </main>
-  <div>
-    <div align="center"
-      style="word-break:break-word;font-family:'Inter', Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;">
-
-      <table class="ms-footer" width="640" cellpadding="0" cellspacing="0" role="presentation"
-        style="border-collapse:collapse;width:640px;margin-top:0;margin-bottom:0;margin-right:auto;margin-left:auto;">
-        <tr>
-          <td class="ms-content-body" align="center"
-            style="word-break:break-word;font-family:'Inter', Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;padding-top:40px;padding-bottom:40px;padding-right:50px;padding-left:50px;">
-            <p class="small"
-              style="margin-top:20px;margin-bottom:20px;margin-right:0;margin-left:0;color:#96a2b3;font-size:14px;line-height:21px;">
-              &copy; Copyright United Threads. All rights reserved.</p>
-            <!--<p class="small"
-                        style="margin-top:20px;margin-bottom:20px;margin-right:0;margin-left:0;color:#96a2b3;font-size:14px;line-height:21px;">
-                        1234 Street Rd.
-                        <br>Suite 1234
-                        <br>City, State, ZIP Code
-                      </p>-->
-          </td>
-        </tr>
-      </table>
-
-    </div>
-  </div>
 </body>
 
 </html>

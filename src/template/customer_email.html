@@ -1,21 +1,19 @@
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>Verify Your Identity</title>
+  <title>Message from {{name}}</title>
 </head>
 
-<body>
-  <main style="display: flex; justify-content: center;">
-    <div style="font-family: Helvetica,Arial,sans-serif;max-width:700px;overflow:auto;line-height:2">
-      <div style="margin:50px auto;width:70%;padding:20px 0">
-        <p style="font-size:1.1em">From,{{name}}</p>
-        <p style="font-size: 12px; color: gray; line-height: 16px;">
-          {{description}}</p>
-      </div>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <main style="display: flex; justify-content: center; padding: 20px;">
+    <div
+      style="background-color: #ffffff; width: 100%; max-width: 600px; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+      <h2 style="color: #333333; font-size: 1.4em; margin-bottom: 8px;">Message from {{name}}</h2>
+      <p style="color: #555555; font-size: 0.9em; margin: 4px 0;"><strong>Email:</strong> {{email}}</p>
+      <p style="color: #777777; font-size: 1em; line-height: 1.6;">{{description}}</p>
     </div>
   </main>
 </body>

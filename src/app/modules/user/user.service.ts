@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import fs from "fs";
 import httpStatus from "http-status";
+import path from "path";
 import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
+import { sendMail } from "../../utils/sendMail";
 import { TUser } from "./user.interface";
 import UserModel from "./user.model";
-import path from "path";
-import fs from "fs";
-import { sendMail } from "../../utils/sendMail";
 import config from "../../config";
 
 const getAllUsersFromDb = async (query: Record<string, unknown>) => {
@@ -122,9 +122,10 @@ const sendMailIntoAdmin = async (data: {
   const sendEmail = fs.readFileSync(parentMailTemplate, "utf-8");
   const html = sendEmail
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
-    .replace(/{{description}}/g, data.description);
+    .replace(/{{description}}/g, data.description)
+    .replace(/{{email}}/g, data.email);
   await sendMail({
-    to: "masumraihan3667@gmail.com" as string,
+    to: config.email.user as string,
     from: data.email,
     html,
     subject: `${data.subject} | theunitedthreads.com`,

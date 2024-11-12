@@ -124,12 +124,13 @@ const sendMailIntoAdmin = async (data: {
   const html = sendEmail
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
     .replace(/{{description}}/g, data.description);
-  sendMail({
+  const res = await sendMail({
     to: config.email.user as string,
     from: data.email,
     html,
     subject: `${data.subject} | theunitedthreads.com`,
   });
+  console.log(res);
 };
 
 const getCsrIdFromDb = async () => {

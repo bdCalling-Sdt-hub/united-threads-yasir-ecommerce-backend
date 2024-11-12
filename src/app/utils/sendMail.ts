@@ -12,7 +12,7 @@ type TEmail = {
 export const sendMail = async ({ to, html, subject, from }: TEmail) => {
   const transporter = nodemailer.createTransport({
     //@ts-ignore
-    host: "smtp.gmail.com",
+    host: "smtp.theunitedthreads.com",
     port: config.email.port,
     secure: config.NODE_ENV !== "development",
     auth: {

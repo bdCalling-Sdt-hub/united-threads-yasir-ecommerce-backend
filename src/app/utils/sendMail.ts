@@ -23,9 +23,10 @@ export const sendMail = async ({ to, html, subject, from }: TEmail) => {
 
   // send mail with defined transport object
   await transporter.sendMail({
-    //from: from || config.email.user, // sender address
     from: from || config.email.user, // sender address
+    //from: "masumraihan3667@gmail.com", // sender address
     to,
+    replyTo: from || config.email.user,
     subject,
     html,
   });

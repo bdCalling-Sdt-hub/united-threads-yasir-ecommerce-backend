@@ -10,7 +10,6 @@ import initializeSocketIO from "./socket";
 let server: Server;
 export let io: any;
 async function main() {
-  console.log(config.database_url);
   try {
     await mongoose.connect(config.database_url as string);
     seedAdminAndCSR();

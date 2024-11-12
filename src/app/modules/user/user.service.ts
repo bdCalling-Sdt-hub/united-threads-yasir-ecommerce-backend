@@ -123,7 +123,8 @@ const sendMailIntoAdmin = async (data: {
   const html = sendEmail
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
     .replace(/{{description}}/g, data.description)
-    .replace(/{{email}}/g, data.email);
+    .replace(/{{email}}/g, data.email)
+    .replace(/{{subject}}/g, data.subject);
   await sendMail({
     to: config.email.user as string,
     from: data.email,

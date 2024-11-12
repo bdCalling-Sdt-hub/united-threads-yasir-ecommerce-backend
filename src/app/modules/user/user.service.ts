@@ -119,16 +119,16 @@ const sendMailIntoAdmin = async (data: {
   subject: string;
   description: string;
 }) => {
-  const parentMailTemplate = path.join(process.cwd(), "/src/template/email.html");
-  const forgetOtpEmail = fs.readFileSync(parentMailTemplate, "utf-8");
-  const html = forgetOtpEmail
+  const parentMailTemplate = path.join(process.cwd(), "/src/template/customer_email.html");
+  const sendEmail = fs.readFileSync(parentMailTemplate, "utf-8");
+  const html = sendEmail
     .replace(/{{name}}/g, `${data.firstName} ${data.lastName}`)
     .replace(/{{description}}/g, data.description);
   sendMail({
-    to: data.email,
-    from: config.email.user,
+    to: config.email.user as string,
+    from: data.email,
     html,
-    subject: `From United Threads | ${data.subject}`,
+    subject: `${data.subject} | theunitedthreads.com`,
   });
 };
 

@@ -41,14 +41,14 @@ app.get("/", async (req: Request, res: Response) => {
 app.use("/api/v1", router);
 
 // Cron job to delete unpaid orders every 5 minutes
-cron.schedule("*/5 * * * *", async () => {
-  try {
-    await OrderServices.deleteUnpaidOrder();
-    console.log("Unpaid orders deleted successfully.");
-  } catch (error) {
-    console.error("Error deleting unpaid orders:", error);
-  }
-});
+//cron.schedule("*/5 * * * *", async () => {
+//  try {
+//    await OrderServices.deleteUnpaidOrder();
+//    console.log("Unpaid orders deleted successfully.");
+//  } catch (error) {
+//    console.error("Error deleting unpaid orders:", error);
+//  }
+//});
 
 // Cron job to send a notification every 10 seconds
 //cron.schedule("*/10 * * * * *", async () => {

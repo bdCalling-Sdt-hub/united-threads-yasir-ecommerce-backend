@@ -15,6 +15,7 @@ const updateUserValidation = z
     houseNo: z.string().min(1).optional(),
     area: z.string().min(1).optional(),
   })
+
   .partial()
   .strict();
 

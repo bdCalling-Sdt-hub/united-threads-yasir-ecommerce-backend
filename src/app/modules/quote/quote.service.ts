@@ -125,6 +125,8 @@ const deleteQuoteIntoDb = async (id: string) => {
 };
 
 const getMyQuotesFromDb = async (user: TTokenUser, query: Record<string, unknown>) => {
+  const filterQuery: Record<string, unknown> = {};
+
   let createdAt: string | null = null;
 
   // Extract the createdAt date and remove it from the query object
@@ -133,9 +135,19 @@ const getMyQuotesFromDb = async (user: TTokenUser, query: Record<string, unknown
     delete query.createdAt; // Remove createdAt from the main query
   }
 
+  Object.keys(query).forEach((key) => {
+    if (key !== "createdAt") {
+      if (key === "isAccepted") {
+        filterQuery[key] = query[key] === "true";
+      } else {
+        filterQuery[key] = query[key];
+      }
+    }
+  });
+
   const quotesQuery = new QueryBuilder(
     QuoteModel.find({ user: user._id, isDeleted: false }).populate("category"),
-    query,
+    filterQuery,
   )
     .search(["name", "description", "materialPreferences"])
     .filter()
@@ -162,9 +174,9 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
     throw new AppError(httpStatus.NOT_FOUND, "Quote Not Found");
   }
 
-  if (quoteData.isAccepted) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Accepted");
-  }
+  //if (quoteData.isAccepted) {
+  //  throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Accepted");
+  //}
 
   if (quoteData.isDeleted) {
     throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Deleted");
@@ -182,7 +194,6 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       },
       { new: true, runValidators: true, session },
     );
-
 
     // AFTER ACCEPT QUOTE BY USER THEN CREATE A ORDER IN DATABASE
     const orderPayload: TOrder = {

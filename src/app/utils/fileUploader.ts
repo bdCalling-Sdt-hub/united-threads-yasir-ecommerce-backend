@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import axios from "axios";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -36,7 +37,65 @@ const upload = multer({ storage: storage });
 //  });
 //};
 
+/**
+ * Downloads an image from a given URL and stores it in the uploads folder.
+ * @param {string} imageUrl - The URL of the image to download.
+ * @param {string} filename - The name to save the file as.
+ * @returns {Promise<string>} - The full path of the downloaded file.
+ */
+const downloadImageToLocal = async (imageUrl: string, filename: string): Promise<string> => {
+  try {
+    const uploadsFolder = path.join(path.join(process.cwd()), "uploads");
+
+    // Create the uploads folder if it doesn't exist
+    if (!fs.existsSync(uploadsFolder)) {
+      fs.mkdirSync(uploadsFolder);
+    }
+
+    const filePath = path.join(uploadsFolder, filename);
+    const response = await axios.get(imageUrl, { responseType: "stream" });
+
+    // Write the image to disk
+    const writer = fs.createWriteStream(filePath);
+    response.data.pipe(writer);
+
+    // Return a promise that resolves when the download completes
+    return new Promise<string>((resolve, reject) => {
+      writer.on("finish", () => resolve(filePath));
+      writer.on("error", reject);
+    });
+  } catch (error) {
+    console.error("Failed to download image:", error);
+    throw error;
+  }
+};
+
+/**
+ * Clears all files from the uploads folder.
+ * @returns {void}
+ */
+const clearUploadsFolder = (): void => {
+  try {
+    const uploadsFolder = path.join(path.join(process.cwd()), "uploads");
+
+    if (fs.existsSync(uploadsFolder)) {
+      const files: string[] = fs.readdirSync(uploadsFolder);
+      files.forEach((file: string) => {
+        const filePath = path.join(uploadsFolder, file);
+        fs.unlinkSync(filePath); // Remove the file
+      });
+      console.log("All files in the uploads folder have been removed.");
+    } else {
+      console.log("Uploads folder does not exist.");
+    }
+  } catch (error) {
+    console.error("Failed to clear uploads folder:", error);
+  }
+};
+
 export const fileUploader = {
   upload,
+  downloadImageToLocal,
+  clearUploadsFolder,
   //uploadToCloudinary,
 };

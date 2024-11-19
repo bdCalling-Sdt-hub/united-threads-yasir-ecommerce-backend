@@ -1,8 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import fs from "fs";
 import httpStatus from "http-status";
+import moment from "moment";
 import mongoose, { Schema } from "mongoose";
+import path from "path";
+import { io } from "../../../server";
 import QueryBuilder from "../../builder/QueryBuilder";
+import config from "../../config";
 import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
+import { sendMail } from "../../utils/sendMail";
+import { TNotification } from "../notification/notification.interface";
+import { NotificationServices } from "../notification/notification.service";
 import { ORDER_STATUS } from "../order/order.constant";
 import { TOrder } from "../order/order.interface";
 import OrderModel from "../order/order.model";
@@ -10,10 +19,6 @@ import { PaymentModel } from "../payment/payment.model";
 import UserModel from "../user/user.model";
 import { TQuote } from "./quote.interface";
 import QuoteModel from "./quote.model";
-import { NotificationServices } from "../notification/notification.service";
-import { TNotification } from "../notification/notification.interface";
-import { io } from "../../../server";
-
 // Create Quote in Database
 const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
   const userData = await UserModel.findById(user._id).lean();
@@ -23,7 +28,9 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
   }
 
   // Create a new Quote in the database
-  const result = await QuoteModel.create({ ...payload, user: userData._id });
+  const result: any = await (
+    await QuoteModel.create({ ...payload, user: userData._id })
+  ).populate("category user");
 
   const csrId = await UserModel.findOne({ role: "CSR" }).select("_id").lean();
 
@@ -43,6 +50,26 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
     await NotificationServices.createNotificationIntoDb(notification);
   }
+
+  const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");
+  const quoteDetailsMail = fs.readFileSync(parentMailTemplate, "utf-8");
+  const html = quoteDetailsMail
+    .replace(/{{FULL_NAME}}/g, userData.firstName || "" + " " + userData.lastName || "")
+    .replace(/{{QUOTE_ID}}/g, result?._id.toString())
+    .replace(/{{DATE}}/g, moment(result.createdAt).format("MMM, DD YYYY") || "")
+    .replace(/{{EMAIL}}/g, userData.email || "")
+    .replace(/{{PHONE}}/g, userData.contact || "")
+    .replace(/{{CATEGORY}}/g, (result.category.name as string) || "")
+    .replace(/{{PANTONE_CODE}}/g, result.pantoneColor || "")
+    .replace(/{{MATERIALS_PREFERENCE}}/g, result.materialPreferences || "")
+    .replace(/{{FRONT_IMAGE}}/g, String(result.frontSide))
+    .replace(/{{BACK_IMAGE}}/g, String(result.backSide));
+
+  await sendMail({
+    to: config.email.user as string,
+    html,
+    subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
+  });
 
   return result;
 };
@@ -231,6 +258,7 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
 
     await session.commitTransaction();
     await session.endSession();
+
     return result;
   } catch (error) {
     await session.abortTransaction();

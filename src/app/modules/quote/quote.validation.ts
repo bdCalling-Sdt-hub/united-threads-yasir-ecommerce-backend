@@ -26,12 +26,13 @@ const quoteSchema = z
     houseNo: z.string().min(1, { message: "House number is required" }),
     area: z.string().min(1, { message: "Area is required" }),
     //colorDuration: z.string().min(1, { message: "Color duration is required" }),
+
     sizesAndQuantities: sizesAndQuantitiesSchema,
     comment: z.string().optional(),
     materialPreferences: z.string().min(1, { message: "Material preference is required" }),
   })
   .strict();
- 
+
 const updateQuoteSchema = z
   .object({
     name: z.string().optional(),
@@ -50,7 +51,7 @@ const updateQuoteSchema = z
     houseNo: z.string().optional(),
     area: z.string().optional(),
     comment: z.string().optional(),
-    sizesAndQuantitiesSchema: sizesAndQuantitiesSchema.optional(),
+    sizesAndQuantities: sizesAndQuantitiesSchema.optional(),
     //colorDuration: z.string().optional(),
     materialPreferences: z.string().optional(),
   })

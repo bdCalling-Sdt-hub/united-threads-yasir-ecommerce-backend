@@ -213,7 +213,6 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       sizesAndQuantities: quoteData.sizesAndQuantities,
     };
     //const order = await OrderServices.createOrderForQuote(user, orderPayload);
-
     const result = await OrderModel.create([{ ...orderPayload, user: user._id }], {
       session,
     });

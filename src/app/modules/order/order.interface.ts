@@ -1,18 +1,20 @@
 import { Schema } from "mongoose";
+import { TProductSize } from "../product/product.interface";
 
 export type TOrder = {
   _id?: Schema.Types.ObjectId;
   user: Schema.Types.ObjectId;
   product?: Schema.Types.ObjectId;
   quote?: Schema.Types.ObjectId;
-  quantity: number;
+  quantity?: number;
   amount: number;
   status: TOrderStatus;
   orderType: TOrderType;
   paymentStatus: TPaymentStatus;
-  size: string;
+  size?: string;
   color: string;
   duoAmount?: number;
+  sizesAndQuantities?: TSizeAndQuantity[];
   country: string;
   state: string;
   city: string;
@@ -20,6 +22,11 @@ export type TOrder = {
   area?: string;
   createdAt?: Date;
   updatedAt?: Date;
+};
+
+export type TSizeAndQuantity = {
+  size: TProductSize;
+  quantity: number;
 };
 
 export type TOrderStatus = "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELED";

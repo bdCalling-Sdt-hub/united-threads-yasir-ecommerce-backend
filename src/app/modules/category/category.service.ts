@@ -24,17 +24,7 @@ const createCategoryIntoDb = async (user: TTokenUser, payload: TCategory) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Your Account is not verified");
   }
 
-  const result = await CategoryModel.findOneAndUpdate(
-    {
-      name: payload.name,
-    },
-    { ...payload, user: userData },
-    {
-      upsert: true,
-      new: true,
-      runValidators: true,
-    },
-  );
+  const result = await CategoryModel.create({ ...payload, user: userData });
   return result;
 };
 
@@ -76,11 +66,7 @@ const updateCategoryIntoDb = async (categoryId: string, payload: Partial<TCatego
 };
 
 const deleteCategoryIntoDb = async (id: string) => {
-  const result = await CategoryModel.findOneAndUpdate(
-    { _id: id },
-    { isDeleted: true },
-    { new: true, runValidators: true },
-  );
+  const result = await CategoryModel.findOneAndDelete({ _id: id });
   return result;
 };
 

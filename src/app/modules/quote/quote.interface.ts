@@ -20,12 +20,17 @@ export type TQuote = {
   area?: string;
   comment?: string;
   materialPreferences: string;
+  sizesAndQuantities: TSizeAndQuantity[];
   isDeleted?: boolean;
   quoteStatus?: TQuoteStatus;
   isAccepted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   salesCount?: number;
+};
+export type TSizeAndQuantity = {
+  size: TProductSize;
+  quantity: number;
 };
 
 export type TQuoteStatus = "pending" | "processing" | "delivered" | "CANCELED";

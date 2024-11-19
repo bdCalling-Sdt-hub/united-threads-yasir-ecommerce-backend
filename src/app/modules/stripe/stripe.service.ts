@@ -17,7 +17,7 @@ const paymentLink = async (order: TOrder) => {
           product_data: {
             name: _id.toString(),
           },
-          unit_amount: order.amount * 100,
+          unit_amount: Number((order.amount * 100).toFixed(2)),
         },
         quantity: order.orderType === "SHOP" ? order.quantity : 1,
       },
@@ -26,14 +26,14 @@ const paymentLink = async (order: TOrder) => {
     cancel_url: `${config.payment.paymentCancelUrl}?orderId=${_id}`,
     mode: "payment",
     metadata: {
-      order: JSON.stringify(order),
+      order: JSON.stringify(order._id),
     },
     invoice_creation: {
       enabled: true,
     },
     payment_intent_data: {
       metadata: {
-        order: JSON.stringify(order),
+        order: JSON.stringify(order._id),
       },
     },
     payment_method_types: ["card", "cashapp", "amazon_pay", "us_bank_account"],

@@ -19,7 +19,6 @@ async function main() {
 
     // Initialize Socket.IO on the same HTTP server
     io = initializeSocketIO(httpServer);
-
     server = app.listen(config.port, () => {
       console.log(`Example app listening on port ${config.port}`);
     });

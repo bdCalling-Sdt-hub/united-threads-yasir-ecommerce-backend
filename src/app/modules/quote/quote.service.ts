@@ -173,7 +173,6 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
   if (!quoteData) {
     throw new AppError(httpStatus.NOT_FOUND, "Quote Not Found");
   }
-
   //if (quoteData.isAccepted) {
   //  throw new AppError(httpStatus.BAD_REQUEST, "Quote Already Accepted");
   //}
@@ -211,6 +210,7 @@ const acceptQuoteIntoDb = async (quoteId: string, user: TTokenUser) => {
       area: quoteData.area,
       size: quoteData.size,
       color: quoteData.hexColor,
+      sizesAndQuantities: quoteData.sizesAndQuantities,
     };
     //const order = await OrderServices.createOrderForQuote(user, orderPayload);
 

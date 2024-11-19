@@ -19,7 +19,7 @@ const createQuoteProductValidation = z
     category: z.string({ required_error: "Category ID is required" }),
     colorsPreferences: z
       .array(z.string({ required_error: "Color preference is required" }))
-      .nonempty({ message: "At least one color preference is required" }),
+      .optional(),
     isDeleted: z.boolean().optional(),
   })
   .strict();

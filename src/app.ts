@@ -24,6 +24,8 @@ app.use(
       "https://theunitedthreads.com",
       "https://www.dashboard.theunitedthreads.com",
       "https://www.theunitedthreads.com",
+      "http://192.168.20.78:5010",
+      "http://192.168.10.188:5010",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,

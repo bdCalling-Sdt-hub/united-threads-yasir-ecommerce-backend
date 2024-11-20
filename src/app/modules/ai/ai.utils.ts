@@ -24,7 +24,7 @@ export const ai = new OpenAI({
 export const generateImage = async (
   prompt: string,
   n: number = 1, // Number of images to generate
-  size: "1024x1024" | "512x512" | "256x256" = "256x256",
+  size: "1024x1024" | "1024x1024" | "512x512" | "256x256" = "1024x1024",
 ): Promise<string[]> => {
   try {
     const response = await ai.images.generate({
@@ -42,6 +42,6 @@ export const generateImage = async (
     return response.data.map((image) => `data:image/png;base64,${image.b64_json}`);
   } catch (error: any) {
     console.log("Error generating image:", error);
-    throw new AppError(httpStatus.BAD_REQUEST, "Failed to generate image");
+    throw new AppError(httpStatus.BAD_REQUEST, error.message);
   }
 };

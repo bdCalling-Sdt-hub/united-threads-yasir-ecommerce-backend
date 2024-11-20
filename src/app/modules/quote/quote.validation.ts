@@ -5,7 +5,7 @@ const productSizeEnum = z.enum(["XS", "S", "M", "L", "XL", "XXL", "XXXL"]);
 const sizesAndQuantitiesSchema = z
   .object({
     size: productSizeEnum,
-    quantity: z.number().min(0, { message: "Quantity must be 0 or greater" }),
+    quantity: z.number().min(1, { message: "Quantity must be 1 or greater" }),
   })
   .array();
 
@@ -51,7 +51,7 @@ const updateQuoteSchema = z
     houseNo: z.string().optional(),
     area: z.string().optional(),
     comment: z.string().optional(),
-    sizesAndQuantities: sizesAndQuantitiesSchema.optional(),
+    sizesAndQuantities: sizesAndQuantitiesSchema,
     //colorDuration: z.string().optional(),
     materialPreferences: z.string().optional(),
   })

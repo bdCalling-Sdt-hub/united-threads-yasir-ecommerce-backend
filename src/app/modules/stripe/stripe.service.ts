@@ -92,8 +92,16 @@ const verifyPayment = async (sessionId: string) => {
   return response;
 };
 
+const refundPayment = async (intendId: string) => {
+  const response = await stripe.refunds.create({
+    payment_intent: intendId,
+  });
+  return response;
+};
+
 export const StripeServices = {
   paymentLink,
   verifyPayment,
   createPaymentLinkForQuoteOrder,
+  refundPayment,
 };

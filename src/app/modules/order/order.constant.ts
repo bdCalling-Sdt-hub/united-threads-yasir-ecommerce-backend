@@ -12,7 +12,7 @@ export const ORDER_TYPE = {
 
 export const PAYMENT_STATUS = {
   UNPAID: "UNPAID",
-  PARTIALLY_PAID: "PARTIALLY_PAID",
+  REFUNDED: "REFUNDED",
   PAID: "PAID",
 } as const;
 

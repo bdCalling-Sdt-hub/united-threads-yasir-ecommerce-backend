@@ -81,6 +81,17 @@ const getMySingleOrder = catchAsync(async (req, res) => {
   });
 });
 
+const updatePaymentStatus = catchAsync(async (req, res) => {
+  const orderId = req.params.id;
+  const result = await OrderServices.updatePaymentStatus(orderId, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Order updated successfully",
+    data: result,
+  });
+});
+
 export const OrderController = {
   createOrder,
   getAllOrders,
@@ -89,4 +100,5 @@ export const OrderController = {
   deleteOrder,
   getMyOrders,
   getMySingleOrder,
+  updatePaymentStatus,
 };

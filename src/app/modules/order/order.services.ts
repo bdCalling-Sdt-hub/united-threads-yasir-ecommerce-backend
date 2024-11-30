@@ -6,7 +6,7 @@ import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
 import { PaymentModel } from "../payment/payment.model";
 import UserModel from "../user/user.model";
-import { TOrder } from "./order.interface";
+import { TOrder, TPaymentStatus } from "./order.interface";
 import OrderModel from "./order.model";
 import { PAYMENT_STATUS } from "./order.constant";
 import QuoteCategoryModel from "../quote-category/quote-category.model";
@@ -291,6 +291,62 @@ const getMySingleOrderFromDB = async (user: TTokenUser, orderId: string) => {
   return order;
 };
 
+const updatePaymentStatus = async (
+  orderId: string,
+  payload: {
+    paymentStatus: TPaymentStatus;
+  },
+) => {
+  const order = await OrderModel.findById(orderId);
+  if (!order) {
+    throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
+  }
+
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const updateOrder = await OrderModel.findOneAndUpdate(
+      { _id: orderId },
+      {
+        paymentStatus: payload.paymentStatus,
+      },
+      {
+        session,
+        new: true,
+      },
+    );
+
+    if (!updateOrder) {
+      throw new AppError(httpStatus.NOT_FOUND, "Failed to update order status");
+    }
+
+    // update payment status
+    const updatePayment = await PaymentModel.findOneAndUpdate(
+      { order: orderId },
+      {
+        status: payload.paymentStatus,
+      },
+      {
+        session,
+      },
+    );
+
+    if (!updatePayment) {
+      throw new AppError(httpStatus.NOT_FOUND, "Failed to update payment status");
+    }
+
+    await session.commitTransaction();
+    return updateOrder;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+};
+
 export const OrderServices = {
   createOrderIntoDb,
   getAllOrdersFromDb,
@@ -301,4 +357,5 @@ export const OrderServices = {
   createOrderForQuote,
   getMyOrdersFromDb,
   getMySingleOrderFromDB,
+  updatePaymentStatus,
 };

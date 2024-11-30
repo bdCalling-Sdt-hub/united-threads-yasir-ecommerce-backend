@@ -180,6 +180,7 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
   } catch (error: any) {
     await session.abortTransaction();
     await session.endSession();
+    StripeServices.refundPayment(payment.payment_intent as string);
     throw new AppError(httpStatus.BAD_REQUEST, error.message);
   }
 };

@@ -33,7 +33,14 @@ const updateOrderSchema = z.object({
   }),
 });
 
+const updatePaymentStatusSchema = z.object({
+  body: z.object({
+    refundAmount: z.number().positive({ message: "Refund amount must be a positive number" }),
+  }),
+});
+
 export const OrderValidation = {
   orderSchema,
   updateOrderSchema,
+  updatePaymentStatusSchema,
 };

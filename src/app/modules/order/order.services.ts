@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status";
 import mongoose from "mongoose";
+import { io } from "../../../server";
 import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { TTokenUser } from "../../types/common";
-import { PaymentModel } from "../payment/payment.model";
-import UserModel from "../user/user.model";
-import { TOrder, TPaymentStatus } from "./order.interface";
-import OrderModel from "./order.model";
-import { PAYMENT_STATUS } from "./order.constant";
-import QuoteCategoryModel from "../quote-category/quote-category.model";
 import CategoryModel from "../category/category.model";
 import { TNotification } from "../notification/notification.interface";
-import { io } from "../../../server";
 import { NotificationServices } from "../notification/notification.service";
+import { PaymentModel } from "../payment/payment.model";
+import QuoteCategoryModel from "../quote-category/quote-category.model";
+import UserModel from "../user/user.model";
+import { PAYMENT_STATUS } from "./order.constant";
+import { TOrder } from "./order.interface";
+import OrderModel from "./order.model";
 
 // Create Order in Database
 const createOrderIntoDb = async (user: TTokenUser, payload: TOrder) => {
@@ -294,9 +294,11 @@ const getMySingleOrderFromDB = async (user: TTokenUser, orderId: string) => {
 const updatePaymentStatus = async (
   orderId: string,
   payload: {
-    paymentStatus: TPaymentStatus;
+    refundAmount: number;
   },
 ) => {
+  const { refundAmount } = payload;
+
   const order = await OrderModel.findById(orderId);
   if (!order) {
     throw new AppError(httpStatus.NOT_FOUND, "Order Not Found");
@@ -307,10 +309,13 @@ const updatePaymentStatus = async (
   try {
     session.startTransaction();
 
+    const newAmount = order.amount - refundAmount;
+    const newStatus = newAmount >= 0 ? order.paymentStatus : PAYMENT_STATUS.REFUNDED;
     const updateOrder = await OrderModel.findOneAndUpdate(
       { _id: orderId },
       {
-        paymentStatus: payload.paymentStatus,
+        paymentStatus: newStatus,
+        amount: newAmount,
       },
       {
         session,
@@ -323,18 +328,17 @@ const updatePaymentStatus = async (
     }
 
     // update payment status
-    const updatePayment = await PaymentModel.findOneAndUpdate(
-      { order: orderId },
-      {
-        status: payload.paymentStatus,
-      },
-      {
-        session,
-      },
-    );
-
-    if (!updatePayment) {
-      throw new AppError(httpStatus.NOT_FOUND, "Failed to update payment status");
+    if (newAmount <= 0) {
+      await PaymentModel.findOneAndUpdate(
+        { order: orderId },
+        {
+          paymentStatus: newStatus,
+        },
+        {
+          session,
+          new: true,
+        },
+      );
     }
 
     await session.commitTransaction();

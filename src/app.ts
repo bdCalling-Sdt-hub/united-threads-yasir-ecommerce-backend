@@ -7,6 +7,7 @@ import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFoundHandler from "./app/middlewares/notFoundHandler";
 import { OrderServices } from "./app/modules/order/order.services";
 import router from "./app/routes";
+import { AiServices } from "./app/modules/ai/ai.service";
 
 const app: Application = express();
 
@@ -78,7 +79,7 @@ app.use("/api/v1", router);
 
 // run every day at 00:00
 cron.schedule("0 0 * * *", () => {
-  OrderServices.deleteUnpaidOrder();
+  AiServices.removePromptCountEveryday();
 });
 
 app.use(globalErrorHandler);

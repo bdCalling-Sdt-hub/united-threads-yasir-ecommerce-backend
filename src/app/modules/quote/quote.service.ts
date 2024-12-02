@@ -48,7 +48,8 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     //  data: notification,
     //});
 
-    await NotificationServices.createNotificationIntoDb(notification);
+    //await NotificationServices.createNotificationIntoDb(notification);
+    console.log(notification);
   }
 
   const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");

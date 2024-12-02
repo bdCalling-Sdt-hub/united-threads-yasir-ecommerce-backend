@@ -53,27 +53,27 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     console.log("notification payload", notification);
   }
 
-  const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");
-  const quoteDetailsMail = fs.readFileSync(parentMailTemplate, "utf-8");
-  const html = quoteDetailsMail
-    .replace(/{{FULL_NAME}}/g, userData.firstName || "" + " " + userData.lastName || "")
-    .replace(/{{QUOTE_ID}}/g, result?._id.toString())
-    .replace(/{{DATE}}/g, moment(result.createdAt).format("MMM, DD YYYY") || "")
-    .replace(/{{EMAIL}}/g, userData.email || "")
-    .replace(/{{PHONE}}/g, userData.contact || "")
-    .replace(/{{CATEGORY}}/g, (result.category.name as string) || "")
-    .replace(/{{PANTONE_CODE}}/g, result.pantoneColor || "")
-    .replace(/{{MATERIALS_PREFERENCE}}/g, result.materialPreferences || "")
-    .replace(/{{FRONT_IMAGE}}/g, String(result.frontSide))
-    .replace(/{{BACK_IMAGE}}/g, String(result.backSide));
+  //const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");
+  //const quoteDetailsMail = fs.readFileSync(parentMailTemplate, "utf-8");
+  //const html = quoteDetailsMail
+  //  .replace(/{{FULL_NAME}}/g, userData.firstName || "" + " " + userData.lastName || "")
+  //  .replace(/{{QUOTE_ID}}/g, result?._id.toString())
+  //  .replace(/{{DATE}}/g, moment(result.createdAt).format("MMM, DD YYYY") || "")
+  //  .replace(/{{EMAIL}}/g, userData.email || "")
+  //  .replace(/{{PHONE}}/g, userData.contact || "")
+  //  .replace(/{{CATEGORY}}/g, (result.category.name as string) || "")
+  //  .replace(/{{PANTONE_CODE}}/g, result.pantoneColor || "")
+  //  .replace(/{{MATERIALS_PREFERENCE}}/g, result.materialPreferences || "")
+  //  .replace(/{{FRONT_IMAGE}}/g, String(result.frontSide))
+  //  .replace(/{{BACK_IMAGE}}/g, String(result.backSide));
 
   console.log("before send email", result);
 
-  await sendMail({
-    to: config.email.user as string,
-    html,
-    subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
-  });
+  //await sendMail({
+  //  to: config.email.user as string,
+  //  html,
+  //  subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
+  //});
 
   console.log("after send email", result);
 

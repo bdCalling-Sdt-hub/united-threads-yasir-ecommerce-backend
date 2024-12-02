@@ -43,10 +43,11 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
       type: "QUOTE",
     };
 
-    io.emit(`notification::${csrId._id}`, {
-      success: true,
-      data: notification,
-    });
+    //io.emit(`notification::${csrId._id}`, {
+    //  success: true,
+    //  data: notification,
+    //});
+    console.log(notification);
 
     await NotificationServices.createNotificationIntoDb(notification);
   }

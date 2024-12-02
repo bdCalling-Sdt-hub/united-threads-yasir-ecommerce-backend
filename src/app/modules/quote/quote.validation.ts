@@ -29,7 +29,7 @@ const quoteSchema = z
 
     sizesAndQuantities: sizesAndQuantitiesSchema,
     comment: z.string().optional(),
-    materialPreferences: z.string().min(1, { message: "Material preference is required" }),
+    materialPreferences: z.string().min(1).optional(),
   })
   .strict();
 

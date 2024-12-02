@@ -34,6 +34,7 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
   const csrId = await UserModel.findOne({ role: "CSR" }).select("_id").lean();
 
+  console.log("after create quote", result);
   if (csrId) {
     // send notification to csr
     const notification: TNotification = {
@@ -49,7 +50,7 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     //});
 
     //await NotificationServices.createNotificationIntoDb(notification);
-    console.log(notification);
+    console.log("notification payload", notification);
   }
 
   const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");
@@ -72,7 +73,7 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
   });
 
-  console.log(result);
+  console.log("after send email", result);
 
   return result;
 };

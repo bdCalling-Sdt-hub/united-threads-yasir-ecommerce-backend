@@ -47,7 +47,6 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     //  success: true,
     //  data: notification,
     //});
-    console.log(notification);
 
     await NotificationServices.createNotificationIntoDb(notification);
   }
@@ -71,6 +70,8 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     html,
     subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
   });
+
+  console.log(result);
 
   return result;
 };

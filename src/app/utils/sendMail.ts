@@ -28,8 +28,8 @@ export const sendMail = async ({ to, html, subject, from, attachments }: TEmail)
       port: config.email.port,
       secure: false,
       auth: {
-        user: "hello@theunitedthreads.com",
-        pass: "vgaa vymp jbyl ymmg",
+        user: config.email.user,
+        pass: config.email.pass,
       },
       attachments,
     });

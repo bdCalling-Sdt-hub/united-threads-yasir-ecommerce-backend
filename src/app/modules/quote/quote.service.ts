@@ -67,6 +67,8 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     .replace(/{{FRONT_IMAGE}}/g, String(result.frontSide))
     .replace(/{{BACK_IMAGE}}/g, String(result.backSide));
 
+  console.log("before send email", result);
+
   await sendMail({
     to: config.email.user as string,
     html,

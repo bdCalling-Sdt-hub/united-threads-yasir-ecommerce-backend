@@ -34,7 +34,6 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
 
   const csrId = await UserModel.findOne({ role: "CSR" }).select("_id").lean();
 
-  console.log("after create quote", result);
   if (csrId) {
     // send notification to csr
     const notification: TNotification = {
@@ -44,13 +43,12 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
       type: "QUOTE",
     };
 
-    //io.emit(`notification::${csrId._id}`, {
-    //  success: true,
-    //  data: notification,
-    //});
+    io.emit(`notification::${csrId._id}`, {
+      success: true,
+      data: notification,
+    });
 
-    //await NotificationServices.createNotificationIntoDb(notification);
-    console.log("notification payload", notification);
+    await NotificationServices.createNotificationIntoDb(notification);
   }
 
   const parentMailTemplate = path.join(process.cwd(), "/src/template/quote-details.html");
@@ -67,15 +65,11 @@ const createQuoteIntoDb = async (user: TTokenUser, payload: TQuote) => {
     .replace(/{{FRONT_IMAGE}}/g, String(result.frontSide))
     .replace(/{{BACK_IMAGE}}/g, String(result.backSide));
 
-  console.log("before send email", result);
-
   await sendMail({
     to: config.email.user as string,
     html,
     subject: "Send a Quote Request by " + userData.firstName + " " + userData.lastName,
   });
-
-  console.log("after send email", result);
 
   return result;
 };

@@ -26,7 +26,7 @@ export const sendMail = async ({ to, html, subject, from, attachments }: TEmail)
       //@ts-ignore
       host: "smtp.gmail.com",
       port: config.email.port,
-      secure: config.NODE_ENV !== "development",
+      secure: false,
       auth: {
         user: config.email.user,
         pass: config.email.pass,

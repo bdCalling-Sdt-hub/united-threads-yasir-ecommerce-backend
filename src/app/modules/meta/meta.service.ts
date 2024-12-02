@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ORDER_TYPE, PAYMENT_STATUS } from "../order/order.constant";
 import OrderModel from "../order/order.model";
 import { PaymentModel } from "../payment/payment.model";
 import UserModel from "../user/user.model";
@@ -200,23 +201,37 @@ const getUserAndRevenueNumber = async () => {
     },
   ]);
 
-  const revenue = await PaymentModel.aggregate([
-    {
-      $match: {
-        status: "PAID",
-      },
+  const orders = await OrderModel.find({
+    paymentStatus: PAYMENT_STATUS.PAID,
+  }).lean();
+
+  const totalRevenue = orders.reduce((total, order) => {
+    if (order.orderType === ORDER_TYPE.QUOTE) {
+      return total + order.amount;
+    } else {
+      return (total + order.amount) * (order?.quantity ?? 1);
+    }
+  }, 0);
+
+  const getTodayOrders = await OrderModel.find({
+    createdAt: {
+      $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      $lt: new Date(new Date().setHours(23, 59, 59, 999)),
     },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: "$amount" },
-      },
-    },
-  ]);
+  });
+
+  const todayRevenue = getTodayOrders.reduce((total, order) => {
+    if (order.orderType === ORDER_TYPE.QUOTE) {
+      return total + order.amount;
+    } else {
+      return (total + order.amount) * (order?.quantity ?? 1);
+    }
+  }, 0);
 
   return {
     userCount: result[0]?.count || 0,
-    revenueCount: revenue[0]?.count || 0,
+    revenueCount: totalRevenue,
+    todayRevenue: todayRevenue,
   };
 };
 

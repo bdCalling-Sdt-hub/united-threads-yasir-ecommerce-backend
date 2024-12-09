@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from "fs";
 import httpStatus from "http-status";
-import moment from "moment";
+import moment from "moment-timezone";
 import mongoose from "mongoose";
 import path from "path";
 import AppError from "../../errors/AppError";
@@ -124,8 +124,16 @@ const verifyPaymentWithWebhook = async (sessionId: string, orderId: string) => {
     const invoiceEmail = fs.readFileSync(parentMailTemplate, "utf-8");
     const html = invoiceEmail
       .replace(/{{name}}/g, orderDetails?.user?.firstName as string)
-      .replace(/{{product_name}}/g, orderDetails?.product?.name)
-      .replace(/{{date}}/g, moment(new Date()).format("DD MMMM YYYY hh:mm A"))
+      .replace(
+        /{{product_name}}/g,
+        orderDetails.orderType === "QUOTE"
+          ? orderDetails?.quote?.name || "Quote"
+          : orderDetails?.product?.name || "Product",
+      )
+      .replace(
+        /{{date}}/g,
+        moment.utc(new Date()).tz("America/New_York").format("DD MMMM YYYY hh:mm A"),
+      )
       .replace(
         /{{amount}}/g,
         orderData.orderType === "QUOTE"

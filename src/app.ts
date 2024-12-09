@@ -16,17 +16,11 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "*",
-      "http://localhost:3005",
-      "http://localhost:5010",
-      "http://172.16.0.2:5010",
-      "http://localhost:3000",
+      "https://theunitedthreads.com",
       "https://dashboard.theunitedthreads.com",
       "https://theunitedthreads.com",
       "https://www.dashboard.theunitedthreads.com",
       "https://www.theunitedthreads.com",
-      "http://192.168.20.78:5010",
-      "http://192.168.10.188:5010",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,

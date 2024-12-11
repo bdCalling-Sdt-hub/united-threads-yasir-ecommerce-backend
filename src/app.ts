@@ -5,9 +5,8 @@ import express, { Application, Request, Response } from "express";
 import cron from "node-cron";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFoundHandler from "./app/middlewares/notFoundHandler";
-import { OrderServices } from "./app/modules/order/order.services";
-import router from "./app/routes";
 import { AiServices } from "./app/modules/ai/ai.service";
+import router from "./app/routes";
 
 const app: Application = express();
 

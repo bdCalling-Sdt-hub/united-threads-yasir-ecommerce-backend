@@ -22,6 +22,7 @@ app.use(
       "https://www.theunitedthreads.com",
       "http://172.16.0.2:5010",
       "https://united-threads-client.vercel.app",
+      "http://159.223.184.53:5010",
     ],
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
